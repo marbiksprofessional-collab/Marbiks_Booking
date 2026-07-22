@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Booking App</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .booking-container {
+            background: var(--card-bg);
+            max-width: 450px;
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="date"]:focus {
+            border-color: var(--primary-color);
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .time-slot {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .time-slot:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .time-slot.selected {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .btn-book {
+            width: 100%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+
+        .btn-book:hover {
+            background: var(--primary-hover);
+        }
+
+        .success-message {
+            display: none;
+            background: #ecfdf5;
+            color: #065f46;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            margin-top: 15px;
+            border: 1px solid #a7f3d0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="booking-container">
+        <h2>Book an Appointment</h2>
+        <p class="subtitle">Select your preferred date and time</p>
+
+        <!-- Date Selection -->
+        <div class="form-group">
+            <label for="appointment-date">Choose Date</label>
+            <input type="date" id="appointment-date">
+        </div>
+
+        <!-- Time Selection -->
+        <div class="form-group">
+            <label>Available Time Slots</label>
+            <div class="time-slots" id="time-slots-container">
+                <div class="time-slot" onclick="selectTime(this)">09:00 AM</div>
+                <div class="time-slot" onclick="selectTime(this)">10:30 AM</div>
+                <div class="time-slot" onclick="selectTime(this)">12:00 PM</div>
+                <div class="time-slot" onclick="selectTime(this)">02:00 PM</div>
+                <div class="time-slot" onclick="selectTime(this)">03:30 PM</div>
+                <div class="time-slot" onclick="selectTime(this)">05:00 PM</div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button class="btn-book" onclick="confirmBooking()">Book Appointment</button>
+
+        <!-- Success Message Popup -->
+        <div class="success-message" id="success-alert">
+            🎉 Appointment booked successfully!
+        </div>
+    </div>
+
+    <script>
+        // Set minimum date to today so users cannot book past dates
+        const dateInput = document.getElementById('appointment-date');
+        const today = new Date().toISOString().split('T');
+        dateInput.min = today;
+        dateInput.value = today;
+
+        let selectedTimeSlot = null;
+
+        // Function to handle time slot selection
+        function selectTime(element) {
+            // Remove 'selected' class from all slots
+            const slots = document.querySelectorAll('.time-slot');
+            slots.forEach(slot => slot.classList.remove('selected'));
+            
+            // Add 'selected' class to the clicked slot
+            element.classList.add('selected');
+            selectedTimeSlot = element.innerText;
+        }
+
+        // Function to confirm booking
+        function confirmBooking() {
+            const selectedDate = dateInput.value;
+
+            if (!selectedDate) {
+                alert('Please select a date.');
+                return;
+            }
+
+            if (!selectedTimeSlot) {
+                alert('Please choose a time slot.');
+                return;
+            }
+
+            // Display success message
+            const successAlert = document.getElementById('success-alert');
+            successAlert.innerText = `🎉 Success! Booked for ${selectedDate} at ${selectedTimeSlot}`;
+            successAlert.style.display = 'block';
+
+            // Hide the message automatically after 5 seconds
+            setTimeout(() => {
+                successAlert.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+
+</body>
+</html>
