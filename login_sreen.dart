@@ -1,4 +1,5 @@
 import 'package:flutter/material';
+import 'dashboard_screen.dart'; // 👑 Connected to Dashboard Screen Module Configuration Context
 
 class MarbiksLoginScreen extends StatefulWidget {
   const MarbiksLoginScreen({super.key});
@@ -21,7 +22,6 @@ class _MarbiksLoginScreenState extends State<MarbiksLoginScreen> {
       return;
     }
     setState(() => _isLoading = true);
-    // Simulating secure system processing runtime
     Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         _isLoading = false;
@@ -33,7 +33,8 @@ class _MarbiksLoginScreenState extends State<MarbiksLoginScreen> {
     });
   }
 
-  @void dispose() {
+  @override
+  void dispose() {
     _phoneController.dispose();
     _otpController.dispose();
     super.dispose();
@@ -42,29 +43,23 @@ class _MarbiksLoginScreenState extends State<MarbiksLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D), // Premium Jet Black
+      backgroundColor: const Color(0xFF0D0D0D),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const Color(0xFF1E1E1E) == null ? const EdgeInsets.all(32.0) : const EdgeInsets.all(32.0),
+            padding: const EdgeInsets.all(32.0),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 400),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Crown Luxury Branding Header Layout
                   const Icon(Icons.workspace_premium, size: 64, color: Color(0xFFD4AF37)),
                   const SizedBox(height: 16),
                   const Text(
                     'MARBIKS ENTERPRISE',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5,
-                      color: Colors.white,
-                    ),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Colors.white),
                   ),
                   const SizedBox(height: 8),
                   const Text(
@@ -74,7 +69,6 @@ class _MarbiksLoginScreenState extends State<MarbiksLoginScreen> {
                   ),
                   const SizedBox(height: 48),
 
-                  // Phone Number Input Container Field
                   TextField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
@@ -91,7 +85,6 @@ class _MarbiksLoginScreenState extends State<MarbiksLoginScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Dynamic OTP Input Container Field appearance via boolean toggle states
                   if (_isOtpSent) ...[
                     TextField(
                       controller: _otpController,
@@ -111,25 +104,22 @@ class _MarbiksLoginScreenState extends State<MarbiksLoginScreen> {
                     const SizedBox(height: 16),
                   ],
 
-                  // Premium Action Button Framework Control Module
                   ElevatedButton(
-                    onPressed: _isLoading ? null : (_isOtpSent ? () {} : _simulateOtpRequest),
+                    // 🚀 Navigates straight to the premium dashboard system once OTP state is active
+                    onPressed: _isLoading 
+                        ? null 
+                        : (_isOtpSent 
+                            ? () { Navigator.push(context, MaterialPageRoute(builder: (context) => const MarbiksDashboardScreen())); } 
+                            : _simulateOtpRequest),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFD4AF37), // Muted Champagne Gold
+                      backgroundColor: const Color(0xFFD4AF37),
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2),
-                          )
-                        : Text(
-                            _isOtpSent ? 'VERIFY IDENTITY' : 'REQUEST ACCESS KEY',
-                            style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
-                          ),
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
+                        : Text(_isOtpSent ? 'VERIFY IDENTITY' : 'REQUEST ACCESS KEY', style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
                   ),
                 ],
               ),
