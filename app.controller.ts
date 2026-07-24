@@ -13,6 +13,7 @@ import { AdvancedAutomationEngine } from './advanced-automation.service';
 import { FraudControlService } from './fraud-control.service';
 import { SopEngineService } from './sop-engine.service';
 import { AntiProxyService } from './anti-proxy.service';
+import { FairTurnAutomationService } from './fair-turn-automation.service';
 
 @Controller()
 export class AppController {
@@ -31,6 +32,7 @@ export class AppController {
     private readonly fraudControlService: FraudControlService,
     private readonly sopEngineService: SopEngineService,
     private readonly antiProxyService: AntiProxyService,
+    private readonly fairTurnAutomationService: FairTurnAutomationService,
   ) {}
 
   // 🏥 1. System Health Check Endpoint
@@ -207,4 +209,7 @@ export class AppController {
   auditStoreRoom(@Body() body: { staffId: string; minutesSpent: number }) {
     return this.antiProxyService.auditUnproductiveStoreRoomTime(body.staffId, body.minutesSpent);
   }
-}
+
+  // ⚙️ 27. Admin Dynamic Penalty Fine Configuration Update Endpoint
+  @Post('fair-turn/admin/configure-penalty')
+  updatePenaltyConfig(@Body() body: { penaltyFine: number }) {
