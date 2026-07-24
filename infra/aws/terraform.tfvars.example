@@ -1,0 +1,26 @@
+# Copy this file to terraform.tfvars and fill in real values, or pass these
+# as -var flags / TF_VAR_ environment variables in CI. Never commit a real
+# terraform.tfvars (it will contain sensitive values) - .gitignore already
+# excludes it.
+
+aws_region  = "ap-south-1"
+environment = "production"
+
+# Scopes the GitHub Actions OIDC deploy role to exactly this repo.
+github_org  = "marbiksprofessional-collab"
+github_repo = "marbiks_booking"
+
+# Build+push the backend image once by hand for a first apply:
+#   cd backend && docker build -t <ecr_repository_url>:latest .
+#   aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin <account-id>.dkr.ecr.ap-south-1.amazonaws.com
+#   docker push <ecr_repository_url>:latest
+# After the first apply, .github/workflows/deploy-backend.yml takes over
+# building and pushing on every push to main.
+container_image = "REPLACE_WITH_ECR_IMAGE_URI:tag"
+
+# Generate with: openssl rand -base64 48
+jwt_secret = "REPLACE_WITH_A_LONG_RANDOM_SECRET"
+
+# Leave blank for HTTP-only (fine to get started); set once you have a
+# validated ACM certificate for your domain.
+certificate_arn = ""
