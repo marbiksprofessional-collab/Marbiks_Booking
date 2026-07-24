@@ -15,6 +15,9 @@ import { ProductsModule } from './products/products.module';
 import { VendorsModule } from './vendors/vendors.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
+import { CustomerAuthModule } from './customer-auth/customer-auth.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { CustomerPortalModule } from './customer-portal/customer-portal.module';
 
 @Module({
   imports: [
@@ -46,6 +49,9 @@ import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
     VendorsModule,
     InventoryModule,
     PurchaseOrdersModule,
+    CustomerAuthModule,
+    ReviewsModule,
+    CustomerPortalModule,
   ],
   controllers: [AppController],
 })

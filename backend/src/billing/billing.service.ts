@@ -6,8 +6,11 @@ import { InvoiceItem } from './invoice-item.entity';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { AppointmentsService } from '../appointments/appointments.service';
 import { ServicesService } from '../services/services.service';
+import { CustomersService } from '../customers/customers.service';
 
 const DEFAULT_TAX_RATE_PERCENT = 18;
+/** Loyalty points awarded per full ₹100 of an invoice's total once it's paid. */
+const LOYALTY_POINTS_PER_100_RUPEES = 1;
 
 @Injectable()
 export class BillingService {
@@ -16,6 +19,7 @@ export class BillingService {
     private readonly invoicesRepository: Repository<Invoice>,
     private readonly appointmentsService: AppointmentsService,
     private readonly servicesService: ServicesService,
+    private readonly customersService: CustomersService,
   ) {}
 
   async create(dto: CreateInvoiceDto): Promise<Invoice> {
@@ -92,11 +96,29 @@ export class BillingService {
     });
   }
 
+  async findForCustomer(customerId: string): Promise<Invoice[]> {
+    return this.invoicesRepository.find({
+      where: { customerId },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async markPaid(id: string, paymentMethod: PaymentMethod): Promise<Invoice> {
     const invoice = await this.findById(id);
+    const wasAlreadyPaid = invoice.paymentStatus === PaymentStatus.PAID;
+
     invoice.paymentStatus = PaymentStatus.PAID;
     invoice.paymentMethod = paymentMethod;
-    return this.invoicesRepository.save(invoice);
+    const saved = await this.invoicesRepository.save(invoice);
+
+    if (!wasAlreadyPaid) {
+      const pointsEarned = Math.floor(Number(saved.total) / 100) * LOYALTY_POINTS_PER_100_RUPEES;
+      if (pointsEarned > 0) {
+        await this.customersService.addLoyaltyPoints(saved.customerId, pointsEarned);
+      }
+    }
+
+    return saved;
   }
 }
 

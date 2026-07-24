@@ -43,4 +43,25 @@ export class CustomersService {
     customer.loyaltyPoints += points;
     return this.customersRepository.save(customer);
   }
+
+  async findByPhone(phone: string): Promise<Customer | null> {
+    return this.customersRepository.findOne({ where: { phone } });
+  }
+
+  async findOrCreateByPhone(
+    phone: string,
+    fullName?: string,
+    email?: string,
+  ): Promise<Customer> {
+    const existing = await this.findByPhone(phone);
+    if (existing) {
+      return existing;
+    }
+    const customer = this.customersRepository.create({
+      phone,
+      fullName: fullName?.trim() || phone,
+      email,
+    });
+    return this.customersRepository.save(customer);
+  }
 }

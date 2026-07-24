@@ -57,4 +57,4 @@ retail products) from the original product vision's Inventory Module.
 
 **Customer app** — registration/OTP login, booking, digital invoice, loyalty points — the
 last of the four originally-requested apps (User, Service Provider, Front-Office Billing,
-Store all now exist in some form).
+Store all now exist in some form). Done in [`docs/PHASE_4.md`](PHASE_4.md).

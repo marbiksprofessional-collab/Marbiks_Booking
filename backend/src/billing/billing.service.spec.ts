@@ -1,15 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { BillingService } from './billing.service';
-import { Invoice, PaymentStatus } from './invoice.entity';
+import { Invoice, PaymentMethod, PaymentStatus } from './invoice.entity';
 import { AppointmentsService } from '../appointments/appointments.service';
 import { ServicesService } from '../services/services.service';
+import { CustomersService } from '../customers/customers.service';
 
 describe('BillingService', () => {
   let service: BillingService;
   let repositoryMock: any;
   let appointmentsServiceMock: { findById: jest.Mock };
   let servicesServiceMock: { findById: jest.Mock };
+  let customersServiceMock: { addLoyaltyPoints: jest.Mock };
 
   beforeEach(async () => {
     repositoryMock = {
@@ -19,6 +21,7 @@ describe('BillingService', () => {
     };
     appointmentsServiceMock = { findById: jest.fn() };
     servicesServiceMock = { findById: jest.fn() };
+    customersServiceMock = { addLoyaltyPoints: jest.fn().mockResolvedValue(undefined) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -26,6 +29,7 @@ describe('BillingService', () => {
         { provide: getRepositoryToken(Invoice), useValue: repositoryMock },
         { provide: AppointmentsService, useValue: appointmentsServiceMock },
         { provide: ServicesService, useValue: servicesServiceMock },
+        { provide: CustomersService, useValue: customersServiceMock },
       ],
     }).compile();
 
@@ -78,5 +82,44 @@ describe('BillingService', () => {
     await expect(
       service.create({ branchId: 'branch-1', customerId: 'customer-1' }),
     ).rejects.toThrow();
+  });
+
+  it('awards loyalty points (1 per ₹100) when an invoice is marked paid', async () => {
+    repositoryMock.findOne.mockResolvedValue({
+      id: 'invoice-1',
+      customerId: 'customer-1',
+      total: '1770.00',
+      paymentStatus: PaymentStatus.UNPAID,
+    });
+
+    await service.markPaid('invoice-1', PaymentMethod.CASH);
+
+    expect(customersServiceMock.addLoyaltyPoints).toHaveBeenCalledWith('customer-1', 17);
+  });
+
+  it('does not re-award loyalty points when an already-paid invoice is marked paid again', async () => {
+    repositoryMock.findOne.mockResolvedValue({
+      id: 'invoice-1',
+      customerId: 'customer-1',
+      total: '1770.00',
+      paymentStatus: PaymentStatus.PAID,
+    });
+
+    await service.markPaid('invoice-1', PaymentMethod.CASH);
+
+    expect(customersServiceMock.addLoyaltyPoints).not.toHaveBeenCalled();
+  });
+
+  it('awards no points when the total is under ₹100', async () => {
+    repositoryMock.findOne.mockResolvedValue({
+      id: 'invoice-1',
+      customerId: 'customer-1',
+      total: '80.00',
+      paymentStatus: PaymentStatus.UNPAID,
+    });
+
+    await service.markPaid('invoice-1', PaymentMethod.CASH);
+
+    expect(customersServiceMock.addLoyaltyPoints).not.toHaveBeenCalled();
   });
 });

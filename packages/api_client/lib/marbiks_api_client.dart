@@ -14,3 +14,4 @@ export 'src/models/vendor.dart';
 export 'src/models/stock_level.dart';
 export 'src/models/stock_batch.dart';
 export 'src/models/purchase_order.dart';
+export 'src/models/review.dart';

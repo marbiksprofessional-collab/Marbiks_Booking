@@ -12,6 +12,7 @@ import 'models/invoice.dart';
 import 'models/product.dart';
 import 'models/purchase_order.dart';
 import 'models/resource.dart';
+import 'models/review.dart';
 import 'models/service_item.dart';
 import 'models/stock_batch.dart';
 import 'models/stock_level.dart';
@@ -445,6 +446,118 @@ class ApiClient {
     );
     final json = await _decode(response) as Map<String, dynamic>;
     return PurchaseOrder.fromJson(json);
+  }
+
+  /// Requests an OTP for the given phone number. There is no SMS gateway
+  /// wired up on the backend yet, so outside production the response
+  /// includes the raw code (`devCode`) so the login flow can be exercised
+  /// without a real SMS provider - it will be null once a real gateway is
+  /// configured and NODE_ENV=production on the backend.
+  Future<String?> requestCustomerOtp(String phone) async {
+    final response = await _httpClient.post(
+      _uri('/customer-auth/otp/request'),
+      headers: _headers,
+      body: jsonEncode({'phone': phone}),
+    );
+    final json = await _decode(response) as Map<String, dynamic>;
+    return json['devCode'] as String?;
+  }
+
+  Future<AuthResult> verifyCustomerOtp({
+    required String phone,
+    required String code,
+    String? fullName,
+    String? email,
+  }) async {
+    final response = await _httpClient.post(
+      _uri('/customer-auth/otp/verify'),
+      headers: _headers,
+      body: jsonEncode({
+        'phone': phone,
+        'code': code,
+        if (fullName != null && fullName.isNotEmpty) 'fullName': fullName,
+        if (email != null && email.isNotEmpty) 'email': email,
+      }),
+    );
+    final json = await _decode(response) as Map<String, dynamic>;
+    return AuthResult.fromJson(json);
+  }
+
+  Future<Customer> getMyProfile() async {
+    final response = await _httpClient.get(_uri('/me'), headers: _headers);
+    final json = await _decode(response) as Map<String, dynamic>;
+    return Customer.fromJson(json);
+  }
+
+  Future<List<Appointment>> getMyBookings() async {
+    final response = await _httpClient.get(_uri('/me/appointments'), headers: _headers);
+    final json = await _decode(response) as List<dynamic>;
+    return json.map((item) => Appointment.fromJson(item as Map<String, dynamic>)).toList();
+  }
+
+  Future<Appointment> bookMyAppointment({
+    required String branchId,
+    required String serviceId,
+    required DateTime startTime,
+    String? technicianId,
+    String? resourceId,
+    String? notes,
+  }) async {
+    final response = await _httpClient.post(
+      _uri('/me/appointments'),
+      headers: _headers,
+      body: jsonEncode({
+        'branchId': branchId,
+        'serviceId': serviceId,
+        'startTime': startTime.toUtc().toIso8601String(),
+        if (technicianId != null) 'technicianId': technicianId,
+        if (resourceId != null) 'resourceId': resourceId,
+        if (notes != null && notes.isNotEmpty) 'notes': notes,
+      }),
+    );
+    final json = await _decode(response) as Map<String, dynamic>;
+    return Appointment.fromJson(json);
+  }
+
+  Future<Appointment> rescheduleMyAppointment(String id, DateTime startTime) async {
+    final response = await _httpClient.patch(
+      _uri('/me/appointments/$id/reschedule'),
+      headers: _headers,
+      body: jsonEncode({'startTime': startTime.toUtc().toIso8601String()}),
+    );
+    final json = await _decode(response) as Map<String, dynamic>;
+    return Appointment.fromJson(json);
+  }
+
+  Future<Appointment> cancelMyAppointment(String id) async {
+    final response =
+        await _httpClient.patch(_uri('/me/appointments/$id/cancel'), headers: _headers);
+    final json = await _decode(response) as Map<String, dynamic>;
+    return Appointment.fromJson(json);
+  }
+
+  Future<List<Invoice>> getMyInvoices() async {
+    final response = await _httpClient.get(_uri('/me/invoices'), headers: _headers);
+    final json = await _decode(response) as List<dynamic>;
+    return json.map((item) => Invoice.fromJson(item as Map<String, dynamic>)).toList();
+  }
+
+  Future<Review> submitReview({
+    required String appointmentId,
+    required int rating,
+    String? comment,
+  }) async {
+    final response = await _httpClient.post(
+      _uri('/reviews'),
+      headers: _headers,
+      body: jsonEncode({
+        'appointmentId': appointmentId,
+        'rating': rating,
+        if (comment != null && comment.isNotEmpty) 'comment': comment,
+      }),
+    );
+    final json = await _decode(response) as Map<String, dynamic>;
+    return Review.fromJson(json);
   }
 
   void dispose() {
