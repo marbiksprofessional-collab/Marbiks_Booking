@@ -8,7 +8,10 @@ import { HrFinanceService } from './hr-finance.service';
 import { SecurityAuditService } from './security-audit.service';
 import { NotificationHubService } from './notification-hub.service';
 import { BiometricAttendanceService } from './biometric-attendance.service';
-import { FranchiseRoyaltyService } from './franchise-royalty.service'; // Import Franchise Service
+import { FranchiseRoyaltyService } from './franchise-royalty.service';
+import { AcademyService } from './academy.service';
+import { ServiceWorkflowEngine } from './service-workflow.service';
+import { AdvancedAutomationEngine } from './advanced-automation.service'; // Import automation engine
 
 @Module({
   imports: [],
@@ -22,7 +25,10 @@ import { FranchiseRoyaltyService } from './franchise-royalty.service'; // Import
     SecurityAuditService,
     NotificationHubService,
     BiometricAttendanceService,
-    FranchiseRoyaltyService // Registered Franchise service globally
+    FranchiseRoyaltyService,
+    AcademyService,
+    ServiceWorkflowEngine,
+    AdvancedAutomationEngine // Registered globally
   ],
 })
 export class AppModule {}
