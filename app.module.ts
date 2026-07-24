@@ -12,7 +12,8 @@ import { FranchiseRoyaltyService } from './franchise-royalty.service';
 import { AcademyService } from './academy.service';
 import { ServiceWorkflowEngine } from './service-workflow.service';
 import { AdvancedAutomationEngine } from './advanced-automation.service';
-import { FraudControlService } from './fraud-control.service'; // Import fraud control service
+import { FraudControlService } from './fraud-control.service';
+import { SopComplianceEngine } from './sop-compliance.service'; // Import SOP Compliance service
 
 @Module({
   imports: [],
@@ -30,7 +31,8 @@ import { FraudControlService } from './fraud-control.service'; // Import fraud c
     AcademyService,
     ServiceWorkflowEngine,
     AdvancedAutomationEngine,
-    FraudControlService // Registered globally
+    FraudControlService,
+    SopComplianceEngine // Registered globally
   ],
 })
 export class AppModule {}
