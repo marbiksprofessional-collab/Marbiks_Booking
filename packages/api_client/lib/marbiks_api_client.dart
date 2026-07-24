@@ -9,3 +9,8 @@ export 'src/models/appointment.dart';
 export 'src/models/invoice.dart';
 export 'src/models/attendance_record.dart';
 export 'src/models/commission_summary.dart';
+export 'src/models/product.dart';
+export 'src/models/vendor.dart';
+export 'src/models/stock_level.dart';
+export 'src/models/stock_batch.dart';
+export 'src/models/purchase_order.dart';

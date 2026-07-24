@@ -9,8 +9,13 @@ import 'models/branch.dart';
 import 'models/commission_summary.dart';
 import 'models/customer.dart';
 import 'models/invoice.dart';
+import 'models/product.dart';
+import 'models/purchase_order.dart';
 import 'models/resource.dart';
 import 'models/service_item.dart';
+import 'models/stock_batch.dart';
+import 'models/stock_level.dart';
+import 'models/vendor.dart';
 
 class ApiClient {
   final String baseUrl;
@@ -250,6 +255,196 @@ class ApiClient {
     );
     final json = await _decode(response) as Map<String, dynamic>;
     return CommissionSummary.fromJson(json);
+  }
+
+  Future<List<Product>> getProducts() async {
+    final response = await _httpClient.get(_uri('/products'), headers: _headers);
+    final json = await _decode(response) as List<dynamic>;
+    return json.map((item) => Product.fromJson(item as Map<String, dynamic>)).toList();
+  }
+
+  Future<Product> createProduct({
+    required String name,
+    required String sku,
+    String? category,
+    String? unit,
+    int? reorderLevel,
+  }) async {
+    final response = await _httpClient.post(
+      _uri('/products'),
+      headers: _headers,
+      body: jsonEncode({
+        'name': name,
+        'sku': sku,
+        if (category != null && category.isNotEmpty) 'category': category,
+        if (unit != null && unit.isNotEmpty) 'unit': unit,
+        if (reorderLevel != null) 'reorderLevel': reorderLevel,
+      }),
+    );
+    final json = await _decode(response) as Map<String, dynamic>;
+    return Product.fromJson(json);
+  }
+
+  Future<List<Vendor>> getVendors() async {
+    final response = await _httpClient.get(_uri('/vendors'), headers: _headers);
+    final json = await _decode(response) as List<dynamic>;
+    return json.map((item) => Vendor.fromJson(item as Map<String, dynamic>)).toList();
+  }
+
+  Future<Vendor> createVendor({required String name, String? phone, String? email}) async {
+    final response = await _httpClient.post(
+      _uri('/vendors'),
+      headers: _headers,
+      body: jsonEncode({
+        'name': name,
+        if (phone != null && phone.isNotEmpty) 'phone': phone,
+        if (email != null && email.isNotEmpty) 'email': email,
+      }),
+    );
+    final json = await _decode(response) as Map<String, dynamic>;
+    return Vendor.fromJson(json);
+  }
+
+  Future<List<StockLevel>> getStock(String branchId) async {
+    final response = await _httpClient.get(
+      _uri('/inventory/stock', {'branchId': branchId}),
+      headers: _headers,
+    );
+    final json = await _decode(response) as List<dynamic>;
+    return json.map((item) => StockLevel.fromJson(item as Map<String, dynamic>)).toList();
+  }
+
+  Future<List<StockLevel>> getLowStock(String branchId) async {
+    final response = await _httpClient.get(
+      _uri('/inventory/low-stock', {'branchId': branchId}),
+      headers: _headers,
+    );
+    final json = await _decode(response) as List<dynamic>;
+    return json.map((item) => StockLevel.fromJson(item as Map<String, dynamic>)).toList();
+  }
+
+  Future<List<StockBatch>> getExpiringBatches(String branchId, {int withinDays = 30}) async {
+    final response = await _httpClient.get(
+      _uri('/inventory/expiring', {'branchId': branchId, 'withinDays': '$withinDays'}),
+      headers: _headers,
+    );
+    final json = await _decode(response) as List<dynamic>;
+    return json.map((item) => StockBatch.fromJson(item as Map<String, dynamic>)).toList();
+  }
+
+  Future<void> receiveStock({
+    required String branchId,
+    required String productId,
+    required int quantity,
+    String? unitCost,
+    String? batchNumber,
+    DateTime? expiryDate,
+    String? vendorId,
+  }) async {
+    final response = await _httpClient.post(
+      _uri('/inventory/receive'),
+      headers: _headers,
+      body: jsonEncode({
+        'branchId': branchId,
+        'productId': productId,
+        'quantity': quantity,
+        if (unitCost != null) 'unitCost': unitCost,
+        if (batchNumber != null && batchNumber.isNotEmpty) 'batchNumber': batchNumber,
+        if (expiryDate != null) 'expiryDate': expiryDate.toUtc().toIso8601String(),
+        if (vendorId != null) 'vendorId': vendorId,
+      }),
+    );
+    await _decode(response);
+  }
+
+  Future<void> consumeStock({
+    required String branchId,
+    required String productId,
+    required int quantity,
+    String? note,
+  }) async {
+    final response = await _httpClient.post(
+      _uri('/inventory/consume'),
+      headers: _headers,
+      body: jsonEncode({
+        'branchId': branchId,
+        'productId': productId,
+        'quantity': quantity,
+        if (note != null && note.isNotEmpty) 'note': note,
+      }),
+    );
+    await _decode(response);
+  }
+
+  Future<void> transferStock({
+    required String fromBranchId,
+    required String toBranchId,
+    required String productId,
+    required int quantity,
+  }) async {
+    final response = await _httpClient.post(
+      _uri('/inventory/transfer'),
+      headers: _headers,
+      body: jsonEncode({
+        'fromBranchId': fromBranchId,
+        'toBranchId': toBranchId,
+        'productId': productId,
+        'quantity': quantity,
+      }),
+    );
+    await _decode(response);
+  }
+
+  Future<void> adjustStock({
+    required String branchId,
+    required String productId,
+    required int quantityDelta,
+    required String reason,
+  }) async {
+    final response = await _httpClient.post(
+      _uri('/inventory/adjust'),
+      headers: _headers,
+      body: jsonEncode({
+        'branchId': branchId,
+        'productId': productId,
+        'quantityDelta': quantityDelta,
+        'reason': reason,
+      }),
+    );
+    await _decode(response);
+  }
+
+  Future<PurchaseOrder> createPurchaseOrder({
+    required String branchId,
+    required String vendorId,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    final response = await _httpClient.post(
+      _uri('/purchase-orders'),
+      headers: _headers,
+      body: jsonEncode({'branchId': branchId, 'vendorId': vendorId, 'items': items}),
+    );
+    final json = await _decode(response) as Map<String, dynamic>;
+    return PurchaseOrder.fromJson(json);
+  }
+
+  Future<List<PurchaseOrder>> getPurchaseOrders({String? branchId}) async {
+    final response = await _httpClient.get(
+      _uri('/purchase-orders', branchId != null ? {'branchId': branchId} : null),
+      headers: _headers,
+    );
+    final json = await _decode(response) as List<dynamic>;
+    return json.map((item) => PurchaseOrder.fromJson(item as Map<String, dynamic>)).toList();
+  }
+
+  Future<PurchaseOrder> receivePurchaseOrder(String id) async {
+    final response = await _httpClient.patch(
+      _uri('/purchase-orders/$id/receive'),
+      headers: _headers,
+      body: jsonEncode({}),
+    );
+    final json = await _decode(response) as Map<String, dynamic>;
+    return PurchaseOrder.fromJson(json);
   }
 
   void dispose() {

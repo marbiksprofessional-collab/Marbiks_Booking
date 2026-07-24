@@ -11,6 +11,10 @@ import { AppointmentsModule } from './appointments/appointments.module';
 import { BillingModule } from './billing/billing.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { CommissionsModule } from './commissions/commissions.module';
+import { ProductsModule } from './products/products.module';
+import { VendorsModule } from './vendors/vendors.module';
+import { InventoryModule } from './inventory/inventory.module';
+import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
 
 @Module({
   imports: [
@@ -38,6 +42,10 @@ import { CommissionsModule } from './commissions/commissions.module';
     BillingModule,
     AttendanceModule,
     CommissionsModule,
+    ProductsModule,
+    VendorsModule,
+    InventoryModule,
+    PurchaseOrdersModule,
   ],
   controllers: [AppController],
 })

@@ -45,4 +45,5 @@ photos, a targets/goals model, a training-content model) and are deferred to a l
 
 **Inventory core** — products, stock levels, branch transfer, low-stock alerts — needed before
 a Store app is useful; then the Customer app (registration/OTP login, booking, digital
-invoice, loyalty points).
+invoice, loyalty points). Inventory core and the Store app are done in
+[`docs/PHASE_3.md`](PHASE_3.md).
