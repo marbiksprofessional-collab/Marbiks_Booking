@@ -23,6 +23,9 @@ export class ServiceItem {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: string;
 
+  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
+  commissionPercent: string;
+
   @Column({ default: true })
   isActive: boolean;
 

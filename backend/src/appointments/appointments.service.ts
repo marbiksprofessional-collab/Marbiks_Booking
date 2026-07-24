@@ -151,4 +151,22 @@ export class AppointmentsService {
       .orderBy('a.startTime', 'ASC')
       .getMany();
   }
+
+  async findForTechnicianAndDate(technicianId: string, date: string): Promise<Appointment[]> {
+    const dayStart = new Date(`${date}T00:00:00.000Z`);
+    const dayEnd = new Date(`${date}T23:59:59.999Z`);
+    return this.appointmentsRepository
+      .createQueryBuilder('a')
+      .where('a.technicianId = :technicianId', { technicianId })
+      .andWhere('a.startTime BETWEEN :dayStart AND :dayEnd', { dayStart, dayEnd })
+      .orderBy('a.startTime', 'ASC')
+      .getMany();
+  }
+
+  async findHistoryForCustomer(customerId: string): Promise<Appointment[]> {
+    return this.appointmentsRepository.find({
+      where: { customerId },
+      order: { startTime: 'DESC' },
+    });
+  }
 }

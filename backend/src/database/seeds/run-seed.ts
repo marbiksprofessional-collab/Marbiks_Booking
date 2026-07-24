@@ -75,9 +75,9 @@ async function seed() {
   const serviceCount = await serviceRepo.count();
   if (serviceCount === 0) {
     await serviceRepo.save([
-      serviceRepo.create({ name: 'Classic Facial', category: 'Skin', durationMinutes: 45, price: '1500.00' }),
-      serviceRepo.create({ name: 'Haircut & Styling', category: 'Hair', durationMinutes: 30, price: '800.00' }),
-      serviceRepo.create({ name: 'Full Body Massage', category: 'Wellness', durationMinutes: 60, price: '2500.00' }),
+      serviceRepo.create({ name: 'Classic Facial', category: 'Skin', durationMinutes: 45, price: '1500.00', commissionPercent: '10.00' }),
+      serviceRepo.create({ name: 'Haircut & Styling', category: 'Hair', durationMinutes: 30, price: '800.00', commissionPercent: '10.00' }),
+      serviceRepo.create({ name: 'Full Body Massage', category: 'Wellness', durationMinutes: 60, price: '2500.00', commissionPercent: '15.00' }),
     ]);
     console.log('Seeded default service catalog');
   }

@@ -3,8 +3,10 @@ import 'package:http/http.dart' as http;
 
 import 'api_exception.dart';
 import 'models/appointment.dart';
+import 'models/attendance_record.dart';
 import 'models/auth_result.dart';
 import 'models/branch.dart';
+import 'models/commission_summary.dart';
 import 'models/customer.dart';
 import 'models/invoice.dart';
 import 'models/resource.dart';
@@ -163,6 +165,13 @@ class ApiClient {
     return Appointment.fromJson(json);
   }
 
+  Future<Appointment> completeAppointment(String id) async {
+    final response =
+        await _httpClient.patch(_uri('/appointments/$id/complete'), headers: _headers);
+    final json = await _decode(response) as Map<String, dynamic>;
+    return Appointment.fromJson(json);
+  }
+
   Future<Invoice> createInvoiceFromAppointment({
     required String branchId,
     required String customerId,
@@ -191,6 +200,56 @@ class ApiClient {
     );
     final json = await _decode(response) as Map<String, dynamic>;
     return Invoice.fromJson(json);
+  }
+
+  Future<List<Appointment>> getMyAppointments({required String date}) async {
+    final response = await _httpClient.get(
+      _uri('/appointments/my', {'date': date}),
+      headers: _headers,
+    );
+    final json = await _decode(response) as List<dynamic>;
+    return json.map((item) => Appointment.fromJson(item as Map<String, dynamic>)).toList();
+  }
+
+  Future<List<Appointment>> getCustomerHistory(String customerId) async {
+    final response = await _httpClient.get(
+      _uri('/appointments/customer/$customerId'),
+      headers: _headers,
+    );
+    final json = await _decode(response) as List<dynamic>;
+    return json.map((item) => Appointment.fromJson(item as Map<String, dynamic>)).toList();
+  }
+
+  Future<AttendanceRecord> clockIn(String branchId) async {
+    final response = await _httpClient.post(
+      _uri('/attendance/clock-in'),
+      headers: _headers,
+      body: jsonEncode({'branchId': branchId}),
+    );
+    final json = await _decode(response) as Map<String, dynamic>;
+    return AttendanceRecord.fromJson(json);
+  }
+
+  Future<AttendanceRecord> clockOut() async {
+    final response = await _httpClient.post(_uri('/attendance/clock-out'), headers: _headers);
+    final json = await _decode(response) as Map<String, dynamic>;
+    return AttendanceRecord.fromJson(json);
+  }
+
+  Future<AttendanceRecord?> getAttendanceStatus() async {
+    final response = await _httpClient.get(_uri('/attendance/me/status'), headers: _headers);
+    final json = await _decode(response);
+    if (json == null) return null;
+    return AttendanceRecord.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<CommissionSummary> getCommissionSummary({required String from, required String to}) async {
+    final response = await _httpClient.get(
+      _uri('/commissions/me', {'from': from, 'to': to}),
+      headers: _headers,
+    );
+    final json = await _decode(response) as Map<String, dynamic>;
+    return CommissionSummary.fromJson(json);
   }
 
   void dispose() {

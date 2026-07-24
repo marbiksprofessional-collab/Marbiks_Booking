@@ -5,6 +5,11 @@ import { RescheduleAppointmentDto } from './dto/reschedule-appointment.dto';
 import { ResourcesService } from './resources.service';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+
+interface RequestUser {
+  id: string;
+}
 
 @Controller('appointments')
 @UseGuards(JwtAuthGuard)
@@ -19,6 +24,16 @@ export class AppointmentsController {
   @Get()
   findForBranchAndDate(@Query('branchId') branchId: string, @Query('date') date: string) {
     return this.appointmentsService.findForBranchAndDate(branchId, date);
+  }
+
+  @Get('my')
+  findMyQueue(@CurrentUser() user: RequestUser, @Query('date') date: string) {
+    return this.appointmentsService.findForTechnicianAndDate(user.id, date);
+  }
+
+  @Get('customer/:customerId')
+  findHistoryForCustomer(@Param('customerId') customerId: string) {
+    return this.appointmentsService.findHistoryForCustomer(customerId);
   }
 
   @Get(':id')

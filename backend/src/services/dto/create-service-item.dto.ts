@@ -14,4 +14,8 @@ export class CreateServiceItemDto {
 
   @IsNumberString()
   price: string;
+
+  @IsOptional()
+  @IsNumberString()
+  commissionPercent?: string;
 }

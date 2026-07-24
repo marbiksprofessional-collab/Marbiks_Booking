@@ -41,6 +41,7 @@ proven in daily use.
 ## Suggested next phases
 
 1. **Service Provider (Technician) app** — clock in/out, service queue, commission view.
+   Done in [`docs/PHASE_2.md`](PHASE_2.md).
 2. **Inventory core** — products, stock levels, branch transfer, low-stock alerts — needed
    before a Store app is useful.
 3. **Customer app** — registration/OTP login, booking, digital invoice, loyalty points.

@@ -7,3 +7,5 @@ export 'src/models/service_item.dart';
 export 'src/models/resource.dart';
 export 'src/models/appointment.dart';
 export 'src/models/invoice.dart';
+export 'src/models/attendance_record.dart';
+export 'src/models/commission_summary.dart';
