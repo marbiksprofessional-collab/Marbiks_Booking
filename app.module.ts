@@ -3,12 +3,14 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ErpService } from './erp-service';
 import { BookingEngine } from './booking-engine';
-import { UserService } from './user.service'; // Import UserService
+import { UserService } from './user.service';
+import { HrFinanceService } from './hr-finance.service';
+import { SecurityAuditService } from './security-audit.service'; // Import SecurityAuditService
 
 @Module({
   imports: [],
     controllers: [AppController],
-      providers: [AppService, ErpService, BookingEngine, UserService], // Registered UserService globally
+      providers: [AppService, ErpService, BookingEngine, UserService, HrFinanceService, SecurityAuditService],
       })
       export class AppModule {}
       
