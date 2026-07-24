@@ -13,26 +13,29 @@ import { AcademyService } from './academy.service';
 import { ServiceWorkflowEngine } from './service-workflow.service';
 import { AdvancedAutomationEngine } from './advanced-automation.service';
 import { FraudControlService } from './fraud-control.service';
-import { SopComplianceEngine } from './sop-compliance.service'; // Import SOP Compliance service
+import { SopEngineService } from './sop-engine.service';
+import { AntiProxyService } from './anti-proxy.service'; // Import AntiProxy Service
 
 @Module({
   imports: [],
-  controllers: [AppController],
-  providers: [
-    AppService, 
-    ErpService, 
-    BookingEngine, 
-    UserService, 
-    HrFinanceService, 
-    SecurityAuditService,
-    NotificationHubService,
-    BiometricAttendanceService,
-    FranchiseRoyaltyService,
-    AcademyService,
-    ServiceWorkflowEngine,
-    AdvancedAutomationEngine,
-    FraudControlService,
-    SopComplianceEngine // Registered globally
-  ],
-})
-export class AppModule {}
+    controllers: [AppController],
+      providers: [
+          AppService, 
+              ErpService, 
+                  BookingEngine, 
+                      UserService, 
+                          HrFinanceService, 
+                              SecurityAuditService,
+                                  NotificationHubService,
+                                      BiometricAttendanceService,
+                                          FranchiseRoyaltyService,
+                                              AcademyService,
+                                                  ServiceWorkflowEngine,
+                                                      AdvancedAutomationEngine,
+                                                          FraudControlService,
+                                                              SopEngineService,
+                                                                  AntiProxyService // Registered globally inside the container context
+                                                                    ],
+                                                                    })
+                                                                    export class AppModule {}
+                                                                    
