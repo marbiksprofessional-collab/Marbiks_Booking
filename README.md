@@ -2,7 +2,7 @@
 
 A self-owned, multi-app ERP platform for Marbiks Professional (beauty, skin, hair, wellness, academy, and cosmetics). Built in-house rather than integrating with a third-party ERP, so the business fully owns its data and infrastructure.
 
-The long-term product vision (all roles, modules, and AI features originally scoped) lives in [`docs/product-vision.md`](docs/product-vision.md). That document is a north star, not a build spec — see [`docs/PHASE_1.md`](docs/PHASE_1.md) through [`docs/PHASE_5.md`](docs/PHASE_5.md) for what's actually implemented so far and the phased plan to get from here to there.
+The long-term product vision (all roles, modules, and AI features originally scoped) lives in [`docs/product-vision.md`](docs/product-vision.md). That document is a north star, not a build spec — see [`docs/PHASE_1.md`](docs/PHASE_1.md) through [`docs/PHASE_6.md`](docs/PHASE_6.md) for what's actually implemented so far and the phased plan to get from here to there.
 
 ## Repository layout
 
@@ -23,6 +23,13 @@ apps/
                             liability, leakage detection (Phase 5)
 packages/
   api_client/              Shared Dart HTTP/auth client used by all client apps
+infra/aws/                 Terraform for self-hosting the backend on AWS (Phase 6) -
+                            written and reference-checked, not yet applied; see
+                            infra/aws/README.md
+build_apks.sh               Builds a release APK per app; see docs/PHASE_6.md for what
+                            was verified where (this repo's dev sandbox can't reach the
+                            Android SDK's download host - .github/workflows/build-apks.yml
+                            is the environment where this actually produces APKs)
 docs/
   product-vision.md        Original full-scope product vision
   PHASE_1.md                Phase 1 scope: core ERP + front-office billing
@@ -30,9 +37,10 @@ docs/
   PHASE_3.md                Phase 3 scope: inventory core + store app
   PHASE_4.md                Phase 4 scope: customer app, OTP auth, reviews, loyalty
   PHASE_5.md                Phase 5 scope: cross-branch reporting + super admin dashboard
+  PHASE_6.md                Phase 6 scope: APK build pipeline + AWS production IaC
 ```
 
-All four originally-requested apps (Front-Office Billing, Service Provider, Store, Customer) plus a Director control room now exist on top of the same backend. See `docs/PHASE_5.md` for suggested next steps.
+All five apps (Front-Office Billing, Service Provider, Store, Customer, Super Admin) exist on top of the same backend, each with a real `android/` platform folder and a passing `flutter analyze`/`flutter test`. See `docs/PHASE_6.md` for the release pipeline and AWS deployment status.
 
 ## Backend: local setup
 
@@ -75,4 +83,4 @@ Note: this config has not been run against a live Docker daemon in the environme
 
 ## Status
 
-See [`docs/PHASE_1.md`](docs/PHASE_1.md) through [`docs/PHASE_5.md`](docs/PHASE_5.md) for current scope and what's next.
+See [`docs/PHASE_1.md`](docs/PHASE_1.md) through [`docs/PHASE_6.md`](docs/PHASE_6.md) for current scope and what's next.

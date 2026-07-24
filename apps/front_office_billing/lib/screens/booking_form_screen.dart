@@ -186,7 +186,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                 const SizedBox(height: 24),
                 Text('Service', style: Theme.of(context).textTheme.titleMedium),
                 DropdownButtonFormField<ServiceItem>(
-                  value: _selectedService,
+                  initialValue: _selectedService,
                   items: _services
                       .map((service) => DropdownMenuItem(
                             value: service,
@@ -198,7 +198,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                 const SizedBox(height: 16),
                 Text('Chair / room (optional)', style: Theme.of(context).textTheme.titleMedium),
                 DropdownButtonFormField<ResourceModel?>(
-                  value: _selectedResource,
+                  initialValue: _selectedResource,
                   items: [
                     const DropdownMenuItem<ResourceModel?>(value: null, child: Text('Not specified')),
                     ..._resources.map(

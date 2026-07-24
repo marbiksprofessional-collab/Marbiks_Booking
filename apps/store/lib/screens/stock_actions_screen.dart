@@ -185,7 +185,7 @@ class _StockActionsScreenState extends State<StockActionsScreen> {
           _isLoadingBranches
               ? const CircularProgressIndicator()
               : DropdownButtonFormField<Branch>(
-                  value: _destinationBranch,
+                  initialValue: _destinationBranch,
                   decoration: const InputDecoration(labelText: 'Destination branch'),
                   items: _branches
                       .map((branch) => DropdownMenuItem(value: branch, child: Text(branch.name)))

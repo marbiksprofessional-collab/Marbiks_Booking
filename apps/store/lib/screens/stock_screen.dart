@@ -60,7 +60,7 @@ class _StockScreenState extends State<StockScreen> {
                 if (batches.isEmpty) return const SizedBox.shrink();
                 return Container(
                   width: double.infinity,
-                  color: Colors.orange.withOpacity(0.12),
+                  color: Colors.orange.withValues(alpha: 0.12),
                   padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

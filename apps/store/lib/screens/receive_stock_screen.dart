@@ -98,7 +98,7 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 DropdownButtonFormField<Product>(
-                  value: _selectedProduct,
+                  initialValue: _selectedProduct,
                   decoration: const InputDecoration(labelText: 'Product'),
                   items: _products
                       .map((product) =>
@@ -108,7 +108,7 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<Vendor?>(
-                  value: _selectedVendor,
+                  initialValue: _selectedVendor,
                   decoration: const InputDecoration(labelText: 'Vendor (optional)'),
                   items: [
                     const DropdownMenuItem<Vendor?>(value: null, child: Text('Not specified')),

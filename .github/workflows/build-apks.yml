@@ -1,0 +1,86 @@
+name: Build Android APKs
+
+# Runs on GitHub-hosted runners, which have normal, unrestricted internet
+# access - unlike the sandbox this workflow was authored in, which sits
+# behind an organizational egress proxy that denies dl.google.com (the
+# Android SDK's download host). That's why APK compilation couldn't be
+# verified end-to-end in that sandbox and has to happen here instead (or on
+# a developer's own machine). See docs/PHASE_6.md for the full story.
+#
+# NOTE on signing: this workflow does not configure a release signing
+# keystore, so `flutter build apk --release` falls back to Flutter's debug
+# signing key. The resulting APKs install and run fine for internal
+# QA/testing but are NOT suitable for Play Store submission - that requires
+# a real upload keystore (see
+# https://docs.flutter.dev/deployment/android#signing-the-app) whose
+# secrets you'd add to this repo's GitHub Actions secrets and reference
+# here. Deliberately not fabricated here since there is no real keystore to
+# reference yet.
+
+on:
+  workflow_dispatch:
+    inputs:
+      apps:
+        description: 'Comma-separated app dirs to build (blank = all 5)'
+        required: false
+        default: ''
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          if [ -n "${{ github.event.inputs.apps }}" ]; then
+            json=$(echo "${{ github.event.inputs.apps }}" \
+              | tr ',' '\n' | sed 's/^ *//;s/ *$//' \
+              | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          else
+            json='["front_office_billing","service_provider","store","customer","super_admin"]'
+          fi
+          echo "matrix=$json" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: 'stable'
+          cache: true
+
+      - name: Fetch packages
+        working-directory: apps/${{ matrix.app }}
+        run: flutter pub get
+
+      - name: Analyze
+        working-directory: apps/${{ matrix.app }}
+        run: flutter analyze
+
+      - name: Test
+        working-directory: apps/${{ matrix.app }}
+        run: flutter test
+
+      - name: Build release APK
+        working-directory: apps/${{ matrix.app }}
+        run: flutter build apk --release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-release-apk
+          path: apps/${{ matrix.app }}/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 30

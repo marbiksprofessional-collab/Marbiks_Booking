@@ -46,7 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 16),
             Card(
-              color: Colors.amber.withOpacity(0.15),
+              color: Colors.amber.withValues(alpha: 0.15),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(

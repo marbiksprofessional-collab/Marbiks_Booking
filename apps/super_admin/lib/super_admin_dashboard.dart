@@ -197,9 +197,9 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.danger.withOpacity(0.12),
+        color: AppColors.danger.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.danger.withOpacity(0.4)),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
@@ -356,12 +356,12 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   'Computed from real invoice tax totals. Assumes intra-state sales '
                   '(CGST = SGST = half of total GST). The backend does not yet '
                   'distinguish inter-state (IGST) invoices, so treat this split as '
                   'directional, not filing-ready.',
-                  style: const TextStyle(color: AppColors.textTertiary, fontSize: 11, height: 1.4),
+                  style: TextStyle(color: AppColors.textTertiary, fontSize: 11, height: 1.4),
                 ),
               ],
             ),
@@ -419,7 +419,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                           label: Text('${days}d'),
                           selected: _unpaidDays == days,
                           onSelected: (_) => _changeUnpaidDays(days),
-                          selectedColor: AppColors.gold.withOpacity(0.2),
+                          selectedColor: AppColors.gold.withValues(alpha: 0.2),
                           labelStyle: TextStyle(
                             color: _unpaidDays == days ? AppColors.gold : AppColors.textSecondary,
                             fontSize: 12,

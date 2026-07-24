@@ -109,7 +109,7 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 DropdownButtonFormField<Vendor>(
-                  value: _selectedVendor,
+                  initialValue: _selectedVendor,
                   decoration: const InputDecoration(labelText: 'Vendor'),
                   items: _vendors
                       .map((vendor) => DropdownMenuItem(value: vendor, child: Text(vendor.name)))
@@ -130,7 +130,7 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           DropdownButtonFormField<Product>(
-                            value: draft.product,
+                            initialValue: draft.product,
                             decoration: const InputDecoration(labelText: 'Product'),
                             items: _products
                                 .map((product) =>

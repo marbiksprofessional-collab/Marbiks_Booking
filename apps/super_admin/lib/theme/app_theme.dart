@@ -77,7 +77,7 @@ ThemeData buildSuperAdminTheme() {
           bodySmall: const TextStyle(color: AppColors.textTertiary),
         ),
     dividerColor: AppColors.divider,
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: AppColors.surface,
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -113,6 +113,6 @@ ThemeData buildSuperAdminTheme() {
       ),
     ),
     iconTheme: const IconThemeData(color: AppColors.textSecondary),
-    dialogTheme: const DialogTheme(backgroundColor: AppColors.surfaceRaised),
+    dialogTheme: const DialogThemeData(backgroundColor: AppColors.surfaceRaised),
   );
 }

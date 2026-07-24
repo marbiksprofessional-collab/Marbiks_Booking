@@ -63,7 +63,7 @@ class _QueueScreenState extends State<QueueScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Today's queue"),
+        title: const Text("Today's queue"),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _refresh),
           IconButton(
@@ -81,7 +81,7 @@ class _QueueScreenState extends State<QueueScreen> {
               final isClockedIn = record?.isClockedIn ?? false;
               return Container(
                 width: double.infinity,
-                color: isClockedIn ? Colors.green.withOpacity(0.12) : Colors.grey.withOpacity(0.15),
+                color: isClockedIn ? Colors.green.withValues(alpha: 0.12) : Colors.grey.withValues(alpha: 0.15),
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [

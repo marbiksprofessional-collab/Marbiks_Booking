@@ -47,6 +47,17 @@ coverage/
 **/linux/flutter/generated_plugin_registrant.h
 **/linux/flutter/generated_plugins.cmake
 
+# --- Terraform ---
+# .terraform.lock.hcl is intentionally NOT ignored - commit it for
+# reproducible provider version pinning.
+**/.terraform/
+*.tfstate
+*.tfstate.*
+**/terraform.tfvars
+!**/terraform.tfvars.example
+crash.log
+crash.*.log
+
 # --- Editors / OS ---
 .vscode/
 .idea/

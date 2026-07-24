@@ -94,7 +94,7 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 DropdownButtonFormField<Branch>(
-                  value: _selectedBranch,
+                  initialValue: _selectedBranch,
                   decoration: const InputDecoration(labelText: 'Branch'),
                   items: _branches
                       .map((branch) => DropdownMenuItem(value: branch, child: Text(branch.name)))
@@ -103,7 +103,7 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<ServiceItem>(
-                  value: _selectedService,
+                  initialValue: _selectedService,
                   decoration: const InputDecoration(labelText: 'Service'),
                   items: _services
                       .map((service) => DropdownMenuItem(
