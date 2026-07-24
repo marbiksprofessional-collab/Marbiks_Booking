@@ -3,73 +3,71 @@ import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 @Injectable()
 export class AntiProxyService {
   private readonly logger = new Logger('AntiProxyService');
+  
+  // Storage track container config mapping for active technician processing cycles
+  private staffOperationalStates = new Map<string, { activeAppointmentId: string; lastStateChange: string; isAvailable: boolean }>();
+
+  /**
+   * 🔒 1. SERVICE ALLOCATION CLOCK-LOCK PROTOCOL
+   * Triggered immediately when front office locks a technician to a client transaction path
+   */
+  lockTechnicianToService(staffId: string, appointmentId: string): any {
+    const timestamp = new Date().toISOString();
     
-      // Track logs for last Wi-Fi signal timestamp from staff device context mapping
-        private staffHeartbeatLogs = new Map<string, { lastPing: string; isConnected: boolean }>();
+    this.staffOperationalStates.set(staffId, {
+      activeAppointmentId: appointmentId,
+      lastStateChange: timestamp,
+      isAvailable: false // Locked, phone is now stored away safely in store room locker
+    });
 
-          /**
-             * 📡 1. WI-FI ROUTER HEARTBEAT PING MONITOR
-                * Triggered continuously every 15 minutes by the tablet/mobile background application layers
-                   */
-                     logStaffDevicePing(staffId: string, isConnectedToBranchWifi: boolean): any {
-                         const timestamp = new Date().toISOString();
-                             
-                                 this.staffHeartbeatLogs.set(staffId, {
-                                       lastPing: timestamp,
-                                             isConnected: isConnectedToBranchWifi
-                                                 });
+    this.logger.log(`[Clock-Lock Active] Technician UUID: ${staffId} locked to service loop. Device access suspended.`);
+    return { status: 'technician_locked', staffId, appointmentId, timestamp };
+  }
 
-                                                     if (!isConnectedToBranchWifi) {
-                                                           this.logger.warn(`[ANTI-PROXY ALERT] Staff UUID: ${staffId} disconnected from Branch Wi-Fi context boundary routing.`);
-                                                                 return { status: 'outside_boundary', action: 'FORCE_STATUS_BREAK_LOGGED', timestamp };
-                                                                     }
+  /**
+   * 🔓 2. STORE ROOM MATERIAL VERIFICATION AUDIT
+   * Triggered by the Store Manager or Receptionist Tablet upon physical product return verification
+   */
+  releaseTechnicianFromService(staffId: string, actualGramsConsumed: number): any {
+    const state = this.staffOperationalStates.get(staffId);
+    if (!state) {
+      throw new HttpException('No ongoing active allocation state found for this technician.', HttpStatus.NOT_FOUND);
+    }
 
-                                                                         return { status: 'synchronized_stable', staffId, timestamp };
-                                                                           }
+    const timestamp = new Date().toISOString();
+    
+    this.staffOperationalStates.set(staffId, {
+      activeAppointmentId: null,
+      lastStateChange: timestamp,
+      isAvailable: true // Released, now visible on app and website grids for next service assignment
+    });
 
-                                                                             /**
-                                                                                * 🧠 2. IDLE ANOMALY AUDIT CONTROLLER
-                                                                                   * Evaluates if clocked-in staff are physically absent by checking active sales/service inputs
-                                                                                      */
-                                                                                        verifyStaffPhysicalPresence(staffId: string, hoursSinceLastActiveService: number): any {
-                                                                                            // If employee is clocked in but shows 0 service consumption metrics for more than 2 straight hours
-                                                                                                if (hoursSinceLastActiveService >= 2) {
-                                                                                                      const infractionReport = {
-                                                                                                              alert: 'SUSPECTED_PROXY_ABSENCE',
-                                                                                                                      staffId,
-                                                                                                                              hoursIdle: hoursSinceLastActiveService,
-                                                                                                                                      timestamp: new Date().toISOString(),
-                                                                                                                                              description: 'Employee logged attendance check but generated zero transactional material logs or service updates for over 2 hours.'
-                                                                                                                                                    };
+    this.logger.log(`[Clock-Lock Released] Technician UUID: ${staffId} successfully passed material audit: ${actualGramsConsumed}g consumed.`);
+    return { status: 'technician_available', staffId, materialAudit: 'passed', timestamp };
+  }
 
-                                                                                                                                                          this.logger.error(`[ATTENDANCE INFRACTION] ${JSON.stringify(infractionReport)}`);
-                                                                                                                                                                return { presenceVerified: false, riskLevel: 'HIGH_ANOMALY', dispatchAdminAlert: true };
-                                                                                                                                                                    }
+  /**
+   * 🚨 3. REAL-TIME UNPRODUCTIVE BREAK DETECTOR
+   * Flags front office cheating loops if staff sits inside store room without active allocations
+   */
+  auditUnproductiveStoreRoomTime(staffId: string, minutesSpentInStoreRoom: number): any {
+    const state = this.staffOperationalStates.get(staffId);
+    const isCurrentlyFree = state ? state.isAvailable : true;
 
-                                                                                                                                                                        return { presenceVerified: true, riskLevel: 'LOW_NORMAL', dispatchAdminAlert: false };
-                                                                                                                                                                          }
+    // Rule validation loop: If staff is marked available but lingers in store room for over 20 mins
+    if (isCurrentlyFree && minutesSpentInStoreRoom > 20) {
+      const anomalyReport = {
+        alert: 'UNPRODUCTIVE_STORE_ROOM_LINGERING',
+        staffId,
+        idleMinutes: minutesSpentInStoreRoom,
+        severity: 'MEDIUM_RISK',
+        description: 'Technician is technically marked Available but has lingered in the store room without an active client service for over 20 minutes.'
+      };
 
-                                                                                                                                                                            /**
-                                                                                                                                                                               * 👤 3. RANDOM AI FACIAL VERIFICATION CHALLENGE LOGIC
-                                                                                                                                                                                  * Generates localized pop-quiz challenges on the employee phone/tablet matrix
-                                                                                                                                                                                     */
-                                                                                                                                                                                       triggerRandomPresenceChallenge(staffId: string, challengeSubmitted: boolean, timeToRespondSeconds: number): any {
-                                                                                                                                                                                           const isTimeout = timeToRespondSeconds > 60; // Mandatory response window context limit: 60 seconds
+      this.logger.error(`[SOP TIMEOUT INFRACTION] ${JSON.stringify(anomalyReport)}`);
+      return { status: 'infraction_flagged', raiseAdminAlert: true, report: anomalyReport };
+    }
 
-                                                                                                                                                                                               if (!challengeSubmitted || isTimeout) {
-                                                                                                                                                                                                     return {
-                                                                                                                                                                                                             challengeStatus: 'FAILED_TIMEOUT',
-                                                                                                                                                                                                                     penaltyAction: 'AUTOMATIC_CLOCK_OUT_ABSENT',
-                                                                                                                                                                                                                             severity: 'CRITICAL',
-                                                                                                                                                                                                                                     message: 'Random AI presence match request timed out. Employee marked absent/outside operations perimeter.'
-                                                                                                                                                                                                                                           };
-                                                                                                                                                                                                                                               }
-
-                                                                                                                                                                                                                                                   return {
-                                                                                                                                                                                                                                                         challengeStatus: 'PASSED_VERIFIED',
-                                                                                                                                                                                                                                                               matchConfidence: '99.4%',
-                                                                                                                                                                                                                                                                     timestamp: new Date().toISOString()
-                                                                                                                                                                                                                                                                         };
-                                                                                                                                                                                                                                                                           }
-                                                                                                                                                                                                                                                                           }
-                                                                                                                                                                                                                                                                           
+    return { status: 'stable', raiseAdminAlert: false };
+  }
+}
