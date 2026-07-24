@@ -1,5 +1,12 @@
 # AWS Production Infrastructure (Terraform)
 
+> **Superseded.** Marbiks now deploys the backend to a self-hosted Hostinger VPS via
+> `docker-compose.yml` at the repo root — see [`docs/HOSTINGER_DEPLOY.md`](../../docs/HOSTINGER_DEPLOY.md)
+> for the active deployment path. This Terraform is kept for reference/optionality
+> (e.g. if a future move back to AWS makes sense) but is not being maintained as the
+> primary target, and `.github/workflows/deploy-backend.yml` (which deployed to the ECS
+> service this creates) has been removed accordingly.
+
 Self-hosted AWS stack for the Marbiks ERP backend: ECS Fargate running the NestJS
 Docker image behind an Application Load Balancer, and RDS PostgreSQL - no third-party
 BaaS, entirely inside your own AWS account.

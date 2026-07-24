@@ -38,9 +38,10 @@ docs/
   PHASE_4.md                Phase 4 scope: customer app, OTP auth, reviews, loyalty
   PHASE_5.md                Phase 5 scope: cross-branch reporting + super admin dashboard
   PHASE_6.md                Phase 6 scope: APK build pipeline + AWS production IaC
+  PHASE_7.md                Phase 7 scope: Hostinger VPS production deployment
 ```
 
-All five apps (Front-Office Billing, Service Provider, Store, Customer, Super Admin) exist on top of the same backend, each with a real `android/` platform folder and a passing `flutter analyze`/`flutter test`. See `docs/PHASE_6.md` for the release pipeline and AWS deployment status.
+All five apps (Front-Office Billing, Service Provider, Store, Customer, Super Admin) exist on top of the same backend, each with a real `android/` platform folder and a passing `flutter analyze`/`flutter test`. See `docs/PHASE_7.md` for the current (Hostinger) production deployment path and `docs/PHASE_6.md` for the APK release pipeline.
 
 ## Backend: local setup
 
@@ -71,16 +72,29 @@ npm test                    # unit tests (booking conflict detection, invoice ma
 npm run test:e2e            # e2e (auth flow) - needs a marbiks_erp_test database
 ```
 
-### Docker Compose
+### Docker Compose / production deployment
 
-`docker-compose.yml` at the repo root brings up Postgres + the backend together:
+`docker-compose.yml` at the repo root runs Postgres + the backend together and is the
+basis for the actual production deployment target: a self-hosted Ubuntu VPS (Hostinger).
+See [`docs/HOSTINGER_DEPLOY.md`](docs/HOSTINGER_DEPLOY.md) for the real deploy commands
+(`git pull` + `docker compose up --build -d`), backups, and firewall notes.
 
 ```bash
-docker compose up --build
+cp .env.example .env   # fill in DB_PASSWORD and JWT_SECRET first
+docker compose up --build -d
 ```
 
-Note: this config has not been run against a live Docker daemon in the environment this was built in (no daemon was available there) — the backend itself was verified directly against a local Postgres install (build, migrations, seed, and a full login → book → invoice flow all passing). Please verify `docker compose up` on your own machine before relying on it.
+Verified: `docker compose config` (real syntax + `.env` variable substitution check —
+no daemon needed) passes cleanly. Full `docker compose up` has not been run against a
+live Docker daemon in the environment this was built in (none was available there) — the
+backend itself was verified directly against a local Postgres install (build, migrations,
+seed, and full login → book → invoice / OTP / inventory / reporting flows all passing —
+see `docs/PHASE_1.md` through `docs/PHASE_5.md`). Please confirm `docker compose up` on
+your actual VPS before relying on it in production.
+
+AWS/Terraform (`infra/aws/`) from an earlier phase is kept for reference but is no longer
+the active deployment path — see the note at the top of `infra/aws/README.md`.
 
 ## Status
 
-See [`docs/PHASE_1.md`](docs/PHASE_1.md) through [`docs/PHASE_6.md`](docs/PHASE_6.md) for current scope and what's next.
+See [`docs/PHASE_1.md`](docs/PHASE_1.md) through [`docs/PHASE_7.md`](docs/PHASE_7.md) for current scope and what's next.

@@ -35,19 +35,25 @@ async function seed() {
     console.log(`Created branch ${branch.name}`);
   }
 
-  const superAdminEmail = 'admin@marbiks.com';
+  // Overridable via env so this script is safe to run against a real
+  // production database - without these set, it falls back to the demo
+  // credentials documented in the README (fine for local dev, NOT fine for
+  // production; see docs/HOSTINGER_DEPLOY.md).
+  const superAdminEmail = process.env.SEED_SUPER_ADMIN_EMAIL || 'admin@marbiks.com';
+  const superAdminPassword = process.env.SEED_SUPER_ADMIN_PASSWORD || 'ChangeMe123!';
+
   const existingAdmin = await userRepo.findOne({ where: { email: superAdminEmail } });
   if (!existingAdmin) {
     await userRepo.save(
       userRepo.create({
         fullName: 'Marbiks Super Admin',
         email: superAdminEmail,
-        passwordHash: await bcrypt.hash('ChangeMe123!', 10),
+        passwordHash: await bcrypt.hash(superAdminPassword, 10),
         role: Role.SUPER_ADMIN,
         branchId: null,
       }),
     );
-    console.log(`Created super admin user (${superAdminEmail} / ChangeMe123!) - change this password immediately`);
+    console.log(`Created super admin user (${superAdminEmail}) - change this password immediately if it's the demo default`);
   }
 
   const receptionistEmail = 'reception@marbiks.com';

@@ -1,22 +1,33 @@
-version: '3.8'
+# Production compose file for a self-hosted Ubuntu VPS (Hostinger or
+# similar) running Docker + the Docker Compose plugin. See
+# docs/HOSTINGER_DEPLOY.md for the actual deploy commands.
+#
+# Reads secrets from a .env file placed next to this file (Compose loads it
+# automatically - no --env-file flag needed). Copy .env.example to .env and
+# fill in real values first; never commit the real .env.
+#
+# Postgres is deliberately NOT published to a host port - it's reachable
+# only from the backend container over the internal Docker network. Use
+# `docker compose exec postgres psql -U ...` for direct access, or an SSH
+# tunnel if you need a GUI client from your own machine.
 
 services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: marbiks
-      POSTGRES_PASSWORD: marbiks
-      POSTGRES_DB: marbiks_erp
-    ports:
-      - '5432:5432'
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
     volumes:
       - marbiks_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U marbiks']
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME}']
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - marbiks_internal
 
   backend:
     build:
@@ -26,16 +37,34 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      PORT: 3000
+      PORT: ${PORT:-3000}
+      NODE_ENV: production
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USERNAME: marbiks
-      DB_PASSWORD: marbiks
-      DB_DATABASE: marbiks_erp
-      JWT_SECRET: change-this-to-a-long-random-string
-      JWT_EXPIRES_IN: 8h
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      # Only used if you run `docker compose exec backend npm run seed` -
+      # see the warning in docs/HOSTINGER_DEPLOY.md before doing that in
+      # production.
+      SEED_SUPER_ADMIN_EMAIL: ${SEED_SUPER_ADMIN_EMAIL:-}
+      SEED_SUPER_ADMIN_PASSWORD: ${SEED_SUPER_ADMIN_PASSWORD:-}
     ports:
-      - '3000:3000'
+      - '${PORT:-3000}:3000'
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--spider', 'http://localhost:3000/api/v1/health']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - marbiks_internal
 
 volumes:
   marbiks_postgres_data:
+
+networks:
+  marbiks_internal:
+    driver: bridge
