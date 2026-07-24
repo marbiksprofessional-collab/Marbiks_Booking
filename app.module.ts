@@ -7,7 +7,8 @@ import { UserService } from './user.service';
 import { HrFinanceService } from './hr-finance.service';
 import { SecurityAuditService } from './security-audit.service';
 import { NotificationHubService } from './notification-hub.service';
-import { BiometricAttendanceService } from './biometric-attendance.service'; // Import service
+import { BiometricAttendanceService } from './biometric-attendance.service';
+import { FranchiseRoyaltyService } from './franchise-royalty.service'; // Import Franchise Service
 
 @Module({
   imports: [],
@@ -20,7 +21,8 @@ import { BiometricAttendanceService } from './biometric-attendance.service'; // 
     HrFinanceService, 
     SecurityAuditService,
     NotificationHubService,
-    BiometricAttendanceService // Registered service globally
+    BiometricAttendanceService,
+    FranchiseRoyaltyService // Registered Franchise service globally
   ],
 })
 export class AppModule {}
