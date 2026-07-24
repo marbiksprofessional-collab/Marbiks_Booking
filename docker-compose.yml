@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: marbiks
+      POSTGRES_PASSWORD: marbiks
+      POSTGRES_DB: marbiks_erp
+    ports:
+      - '5432:5432'
+    volumes:
+      - marbiks_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U marbiks']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: marbiks
+      DB_PASSWORD: marbiks
+      DB_DATABASE: marbiks_erp
+      JWT_SECRET: change-this-to-a-long-random-string
+      JWT_EXPIRES_IN: 8h
+    ports:
+      - '3000:3000'
+
+volumes:
+  marbiks_postgres_data:

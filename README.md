@@ -1,16 +1,63 @@
-# marbiks_Booking
-Booking App to be connected to existing ERP. API is available.
-## 📝 Project Progress Log (July 23, 2026)
-- Fully configured a modern multiphase architecture blueprint for the ERP System layers.
-- Successfully set up the baseline **NestJS Frontend & Backend foundations**.
-- Created and committed: `index.html`, `package.json`, `main.ts`, and `app.module.ts`.
-- Prioritized **Smart Calendar Routing Engine Integration** as the baseline milestone for early execution.
-## 📝 Project Progress Log (July 24, 2026 - Master Backend Architecture Lock)
-- Finalized 20 core operational Enterprise API Routes inside root `app.controller.ts`.
-- Integrated `FraudControlService` and `AdvancedAutomationEngine` to mitigate front-desk scheduling theft.
-- Locked down micro-consumption material gram audit tracking analytics and automated loyalty program logic.
-- Pipeline Status: 100% Core MVP Backend Microservices are officially verified, completed, and archived.
-## 📝 Project Progress Log (July 24, 2026 - Financial Penalty Integration)
-- Linked the automated missed turn salary deductions directly into `hr-finance.service.ts`.
-- Validated enterprise payroll microservices to sustain dynamic financial compliance checks.
-- Full-Stack Status: All core financial anti-cheating modules are 100% complete and secured.
+# Marbiks ERP
+
+A self-owned, multi-app ERP platform for Marbiks Professional (beauty, skin, hair, wellness, academy, and cosmetics). Built in-house rather than integrating with a third-party ERP, so the business fully owns its data and infrastructure.
+
+The long-term product vision (all roles, modules, and AI features originally scoped) lives in [`docs/product-vision.md`](docs/product-vision.md). That document is a north star, not a build spec — see [`docs/PHASE_1.md`](docs/PHASE_1.md) for what's actually implemented so far and the phased plan to get from here to there.
+
+## Repository layout
+
+```
+backend/                   NestJS + PostgreSQL core ERP backend (auth, branches, staff,
+                            customers, service catalog, appointments/booking, billing)
+apps/
+  front_office_billing/    Flutter app for receptionists/front-desk billing staff (Phase 1)
+packages/
+  api_client/              Shared Dart HTTP/auth client used by all client apps
+docs/
+  product-vision.md        Original full-scope product vision
+  PHASE_1.md                What's built, what's next
+```
+
+Future phases add more apps (Service Provider/Technician, Customer, Store/Inventory) on top of the same backend.
+
+## Backend: local setup
+
+Requirements: Node.js 22+, PostgreSQL 16+.
+
+```bash
+cd backend
+cp .env.example .env        # edit DB credentials / JWT secret as needed
+npm install
+npm run migration:run       # creates the schema
+npm run seed                # creates a demo branch, users, services, chairs
+npm run start:dev
+```
+
+The API is served at `http://localhost:3000/api/v1`. Seeded login (change the password immediately in any real deployment):
+
+| Role         | Email                     | Password       |
+|--------------|---------------------------|----------------|
+| Super Admin  | admin@marbiks.com         | ChangeMe123!   |
+| Receptionist | reception@marbiks.com     | ChangeMe123!   |
+| Technician   | technician@marbiks.com    | ChangeMe123!   |
+
+### Tests
+
+```bash
+npm test                    # unit tests (booking conflict detection, invoice math)
+npm run test:e2e            # e2e (auth flow) - needs a marbiks_erp_test database
+```
+
+### Docker Compose
+
+`docker-compose.yml` at the repo root brings up Postgres + the backend together:
+
+```bash
+docker compose up --build
+```
+
+Note: this config has not been run against a live Docker daemon in the environment this was built in (no daemon was available there) — the backend itself was verified directly against a local Postgres install (build, migrations, seed, and a full login → book → invoice flow all passing). Please verify `docker compose up` on your own machine before relying on it.
+
+## Status
+
+See [`docs/PHASE_1.md`](docs/PHASE_1.md) for current scope and what's next.
