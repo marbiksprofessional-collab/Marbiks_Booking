@@ -22,4 +22,3 @@ COPY --from=builder /usr/src/app/.env ./.env
 
 EXPOSE 3000
 CMD ["npm", "run", "start:prod"]
-a
