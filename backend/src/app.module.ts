@@ -18,6 +18,7 @@ import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
 import { CustomerAuthModule } from './customer-auth/customer-auth.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { CustomerPortalModule } from './customer-portal/customer-portal.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { CustomerPortalModule } from './customer-portal/customer-portal.module';
     CustomerAuthModule,
     ReviewsModule,
     CustomerPortalModule,
+    ReportsModule,
   ],
   controllers: [AppController],
 })

@@ -15,3 +15,5 @@ export 'src/models/stock_level.dart';
 export 'src/models/stock_batch.dart';
 export 'src/models/purchase_order.dart';
 export 'src/models/review.dart';
+export 'src/models/revenue_summary.dart';
+export 'src/models/leakage_report.dart';

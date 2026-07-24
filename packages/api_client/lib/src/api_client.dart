@@ -11,7 +11,9 @@ import 'models/customer.dart';
 import 'models/invoice.dart';
 import 'models/product.dart';
 import 'models/purchase_order.dart';
+import 'models/leakage_report.dart';
 import 'models/resource.dart';
+import 'models/revenue_summary.dart';
 import 'models/review.dart';
 import 'models/service_item.dart';
 import 'models/stock_batch.dart';
@@ -558,6 +560,36 @@ class ApiClient {
     );
     final json = await _decode(response) as Map<String, dynamic>;
     return Review.fromJson(json);
+  }
+
+  Future<RevenueSummary> getRevenueSummary({DateTime? from, DateTime? to}) async {
+    final query = <String, String>{};
+    if (from != null) query['from'] = _dateOnly(from);
+    if (to != null) query['to'] = _dateOnly(to);
+
+    final response = await _httpClient.get(
+      _uri('/reports/revenue', query.isEmpty ? null : query),
+      headers: _headers,
+    );
+    final json = await _decode(response) as Map<String, dynamic>;
+    return RevenueSummary.fromJson(json);
+  }
+
+  Future<LeakageReport> getLeakageReport({int unpaidDays = 3}) async {
+    final response = await _httpClient.get(
+      _uri('/reports/leakage', {'unpaidDays': '$unpaidDays'}),
+      headers: _headers,
+    );
+    final json = await _decode(response) as Map<String, dynamic>;
+    return LeakageReport.fromJson(json);
+  }
+
+  String _dateOnly(DateTime date) {
+    final utc = date.toUtc();
+    final year = utc.year.toString().padLeft(4, '0');
+    final month = utc.month.toString().padLeft(2, '0');
+    final day = utc.day.toString().padLeft(2, '0');
+    return '$year-$month-$day';
   }
 
   void dispose() {
