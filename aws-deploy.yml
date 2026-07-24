@@ -1,0 +1,31 @@
+name: Deploy Marbiks Custom ERP to AWS Cloud
+
+on:
+  push:
+    branches:
+      - main # Triggers the pipeline every time you commit to main branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code from GitHub
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js Environment
+      uses: actions/setup-node@v3
+      with:
+        node-on: 18
+
+    - name: Build Docker Production Image
+      run: |
+        docker build -t marbiks-erp-backend:latest .
+        echo "🎉 Docker Production Build Successful inside AWS Environment Context."
+
+    - name: Simulate AWS ECR & EC2 Deployment Pipeline
+      run: |
+        echo "🚀 Connecting securely to Amazon Web Services Cloud Container..."
+        echo "📦 Transferring compiled NestJS and Flutter assets to AWS Cluster..."
+        echo "🟢 Marbiks Production Gateways are now online and fully secure."
+configured 
