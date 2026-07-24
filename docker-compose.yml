@@ -51,6 +51,10 @@ services:
       # production.
       SEED_SUPER_ADMIN_EMAIL: ${SEED_SUPER_ADMIN_EMAIL:-}
       SEED_SUPER_ADMIN_PASSWORD: ${SEED_SUPER_ADMIN_PASSWORD:-}
+      # Leave blank to keep the local-dev OTP fallback (logged server-side,
+      # never delivered by SMS). Set to a real Fast2SMS API key to actually
+      # text customers their OTP - see docs/HOSTINGER_DEPLOY.md.
+      FAST2SMS_API_KEY: ${FAST2SMS_API_KEY:-}
     ports:
       - '${PORT:-3000}:3000'
     healthcheck:

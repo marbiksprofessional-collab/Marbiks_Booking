@@ -140,6 +140,30 @@ ssh -L 5432:localhost:5432 your-user@your-vps-ip
 # then point your local Postgres client at localhost:5432
 ```
 
+## Customer OTP delivery (Fast2SMS)
+
+There is no SMS gateway wired up by default - the customer app's OTP login only
+works out of the box in non-production environments, where the code is logged
+server-side and also returned in the API response (`devCode`) so you can read it
+off `docker compose logs -f backend` or the response itself. Since this compose
+file runs the backend with `NODE_ENV=production`, `devCode` is never returned here
+-  the OTP is *only* visible via `docker compose logs -f backend | grep "OTP for"`
+until you configure a real gateway.
+
+To send real OTP SMS to customers, set `FAST2SMS_API_KEY` in `.env` to a real
+[Fast2SMS](https://www.fast2sms.com/) API key, then:
+
+```bash
+docker compose up -d   # picks up the new .env value
+```
+
+Once that key is set, every OTP is sent via Fast2SMS's OTP route and the code is
+never included in the API response, in any environment - if the send fails (bad
+key, no balance, Fast2SMS outage), the request fails with a clear error instead
+of silently reporting success for an SMS that never arrived. Fast2SMS expects a
+plain 10-digit Indian mobile number; phone numbers stored with a `+91` or `91`
+prefix are normalized automatically.
+
 ## Pointing the Flutter apps at this backend
 
 Each app's `apiBaseUrl` (see `apps/<app>/lib/config.dart`) is a compile-time constant
