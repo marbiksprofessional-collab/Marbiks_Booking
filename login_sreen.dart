@@ -1,5 +1,6 @@
 import 'package:flutter/material';
-import 'dashboard_screen.dart'; // 👑 Connected to Dashboard Screen Module Configuration Context
+import 'dashboard_screen.dart';
+import 'http_client.dart'; // Importing our live Network Client Layer
 
 class MarbiksLoginScreen extends StatefulWidget {
   const MarbiksLoginScreen({super.key});
@@ -11,26 +12,55 @@ class MarbiksLoginScreen extends StatefulWidget {
 class _MarbiksLoginScreenState extends State<MarbiksLoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
+  final MarbiksHttpClient _httpClient = MarbiksHttpClient(); // Instance created
+  
   bool _isOtpSent = false;
   bool _isLoading = false;
 
-  void _simulateOtpRequest() {
+  // 📱 Pushing Real-time Request to NestJS Backend via Client Abstraction
+  Future<void> _handleOtpRequest() async {
     if (_phoneController.text.length < 10) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid 10-digit phone number.')),
-      );
+      _showSnackbar('Please enter a valid 10-digit phone number.');
       return;
     }
     setState(() => _isLoading = true);
-    Future.delayed(const Duration(seconds: 2), () {
-      setState(() {
-        _isLoading = false;
-        _isOtpSent = true;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('🎉 Secure verification OTP sent to your device.')),
+    
+    final response = await _httpClient.requestOtpToken(_phoneController.text);
+    
+    setState(() => _isLoading = false);
+    if (response['message'] != null && response['status'] != 'error') {
+      setState(() => _isOtpSent = true);
+      _showSnackbar('🎉 Secure verification OTP sent to your device.');
+    } else {
+      _showSnackbar(response['message'] ?? 'Connection to OTP Server failed.');
+    }
+  }
+
+  // 🔑 Confirming Security Key directly with the Central Auth Router
+  Future<void> _handleOtpVerification() async {
+    if (_otpController.text.length < 6) {
+      _showSnackbar('Please enter the 6-digit OTP code.');
+      return;
+    }
+    setState(() => _isLoading = true);
+
+    final response = await _httpClient.verifyOtpToken(_phoneController.text, _otpController.text);
+    
+    setState(() => _isLoading = false);
+    if (response['success'] == true) {
+      if (!mounted) return;
+      // Route smoothly into the central luxury dashboard layer
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MarbiksDashboardScreen()),
       );
-    });
+    } else {
+      _showSnackbar(response['message'] ?? 'Incorrect OTP code validation failed.');
+    }
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -61,14 +91,7 @@ class _MarbiksLoginScreenState extends State<MarbiksLoginScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Colors.white),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Secure Identity and Access Authentication Gate',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Color(0xFFA6A6A6)),
-                  ),
                   const SizedBox(height: 48),
-
                   TextField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
@@ -84,7 +107,6 @@ class _MarbiksLoginScreenState extends State<MarbiksLoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   if (_isOtpSent) ...[
                     TextField(
                       controller: _otpController,
@@ -103,14 +125,10 @@ class _MarbiksLoginScreenState extends State<MarbiksLoginScreen> {
                     ),
                     const SizedBox(height: 16),
                   ],
-
                   ElevatedButton(
-                    // 🚀 Navigates straight to the premium dashboard system once OTP state is active
                     onPressed: _isLoading 
                         ? null 
-                        : (_isOtpSent 
-                            ? () { Navigator.push(context, MaterialPageRoute(builder: (context) => const MarbiksDashboardScreen())); } 
-                            : _simulateOtpRequest),
+                        : (_isOtpSent ? _handleOtpVerification : _handleOtpRequest),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFD4AF37),
                       foregroundColor: Colors.black,
