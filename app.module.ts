@@ -11,7 +11,8 @@ import { BiometricAttendanceService } from './biometric-attendance.service';
 import { FranchiseRoyaltyService } from './franchise-royalty.service';
 import { AcademyService } from './academy.service';
 import { ServiceWorkflowEngine } from './service-workflow.service';
-import { AdvancedAutomationEngine } from './advanced-automation.service'; // Import automation engine
+import { AdvancedAutomationEngine } from './advanced-automation.service';
+import { FraudControlService } from './fraud-control.service'; // Import fraud control service
 
 @Module({
   imports: [],
@@ -28,7 +29,8 @@ import { AdvancedAutomationEngine } from './advanced-automation.service'; // Imp
     FranchiseRoyaltyService,
     AcademyService,
     ServiceWorkflowEngine,
-    AdvancedAutomationEngine // Registered globally
+    AdvancedAutomationEngine,
+    FraudControlService // Registered globally
   ],
 })
 export class AppModule {}
