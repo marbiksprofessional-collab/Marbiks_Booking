@@ -140,6 +140,27 @@ ssh -L 5432:localhost:5432 your-user@your-vps-ip
 # then point your local Postgres client at localhost:5432
 ```
 
+## Pointing the Flutter apps at this backend
+
+Each app's `apiBaseUrl` (see `apps/<app>/lib/config.dart`) is a compile-time constant
+defaulting to `http://localhost:3000/api/v1` - useful for a local emulator, useless on a
+real phone or tablet (it points the app at itself, not your server). The APKs produced by
+`build_apks.sh` or `.github/workflows/build-apks.yml` **without** an override are built
+with that default and will never reach a real backend.
+
+Once this backend is reachable at a real address (e.g. `http://your-vps-ip:3000/api/v1`,
+or better, behind HTTPS via the Caddy/Nginx setup mentioned below), rebuild pointed at it:
+
+```bash
+API_BASE_URL=http://your-vps-ip:3000/api/v1 ./build_apks.sh
+```
+
+or, without a local Flutter/Android toolchain, trigger `build-apks.yml` manually from the
+GitHub Actions tab (or via the API) with the `api_base_url` input set to the same value -
+it threads through to `flutter build apk --release --dart-define=API_BASE_URL=...` for
+every app in the matrix. Reinstall the resulting APKs over the old ones on your device;
+the old ones can't be redirected at runtime since the URL is baked in at build time.
+
 ## Firewall
 
 Only these ports need to be open to the internet:

@@ -24,6 +24,13 @@ on:
         description: 'Comma-separated app dirs to build (blank = all 5)'
         required: false
         default: ''
+      api_base_url:
+        description: >-
+          Backend URL to bake into these APKs, e.g. https://your-vps-domain-or-ip/api/v1
+          (blank = keep the default of http://localhost:3000/api/v1, which only works
+          against a backend running on the device itself - not useful on a real phone/tablet)
+        required: false
+        default: ''
   push:
     tags:
       - 'v*.*.*'
@@ -75,7 +82,16 @@ jobs:
 
       - name: Build release APK
         working-directory: apps/${{ matrix.app }}
-        run: flutter build apk --release
+        env:
+          API_BASE_URL: ${{ github.event.inputs.api_base_url }}
+        run: |
+          if [ -n "$API_BASE_URL" ]; then
+            echo "Building against API_BASE_URL=$API_BASE_URL"
+            flutter build apk --release --dart-define=API_BASE_URL="$API_BASE_URL"
+          else
+            echo "No api_base_url input given - keeping default http://localhost:3000/api/v1"
+            flutter build apk --release
+          fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4

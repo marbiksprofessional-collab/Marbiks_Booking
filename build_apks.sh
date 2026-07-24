@@ -19,6 +19,12 @@
 #   ./build_apks.sh                 # build every app
 #   ./build_apks.sh front_office_billing store   # build only the named apps
 #
+# By default every app is built against the compiled-in default backend URL
+# (http://localhost:3000/api/v1 - only reachable if the backend runs on the
+# same device as the installed app, which is never true on a real phone or
+# tablet). To point the built APKs at a real backend, set API_BASE_URL:
+#   API_BASE_URL=https://your-vps-domain-or-ip/api/v1 ./build_apks.sh
+#
 # Exit code is non-zero if any app fails to build; the script still attempts
 # every app rather than stopping at the first failure, so a single broken
 # app doesn't block a release build of the other four.
@@ -105,7 +111,15 @@ for app in "${TARGET_APPS[@]}"; do
   fi
 
   log "[$app] Building release APK"
-  if "$FLUTTER_BIN" build apk --release; then
+  if [ -n "${API_BASE_URL:-}" ]; then
+    log "[$app] Using API_BASE_URL=$API_BASE_URL"
+    build_ok=0
+    "$FLUTTER_BIN" build apk --release --dart-define=API_BASE_URL="$API_BASE_URL" && build_ok=1
+  else
+    build_ok=0
+    "$FLUTTER_BIN" build apk --release && build_ok=1
+  fi
+  if [ "$build_ok" -eq 1 ]; then
     apk_path="build/app/outputs/flutter-apk/app-release.apk"
     if [ -f "$apk_path" ]; then
       dest="$DIST_DIR/${app}-release.apk"
