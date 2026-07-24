@@ -4,101 +4,84 @@ import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 export class FairTurnAutomationService {
   private readonly logger = new Logger('FairTurnAutomationService');
 
-    // Memory matrices tracking technician rotational profiles
-      private branchTurnQueues = new Map<string, string[]>(); // branchId -> [staffIds in order]
-        private staffPenaltyStatus = new Map<string, { isBlocked: boolean; reason: string; liftTime: number }>();
+    // Admin Configurable Global Penalty Rate Framework
+      private adminConfiguredMissedTurnPenaltyAmount = 500; // Default ₹500 penalty, changeable by admin
+        
+          private branchTurnQueues = new Map<string, string[]>(); // branchId -> [staffIds]
+            private staffFinancialPenalties = new Map<string, { totalPenaltyDeducted: number; infractionsCount: number; logs: any[] }>();
 
-          /**
-             * 🔄 1. ENQUEUE STAFF INTO ROUND-ROBIN MATRIX
-                * Adds staff to the baseline rotation queue immediately upon morning attendance validation
-                   */
-                     initializeStaffTurn(branchId: string, staffId: string): void {
-                         const queue = this.branchTurnQueues.get(branchId) || [];
-                             if (!queue.includes(staffId)) {
-                                   queue.push(staffId);
-                                         this.branchTurnQueues.set(branchId, queue);
-                                             }
-                                               }
+              /**
+                 * ⚙️ 1. ADMIN PENALTY CONFIGUTATOR
+                    * Allows Super Admin or GM to dynamically adjust the penalty fine via dashboard room controllers
+                       */
+                         updateAdminPenaltyConfiguration(newAmount: number): any {
+                             if (newAmount < 0) {
+                                   throw new HttpException('Penalty deduction configuration amount cannot be negative.', HttpStatus.BAD_REQUEST);
+                                       }
+                                           this.adminConfiguredMissedTurnPenaltyAmount = newAmount;
+                                               this.logger.log(`[Admin Config Updated] Missed turn penalty fine is now set to: ₹${newAmount}`);
+                                                   return { status: 'success', currentPenaltyFineSet: this.adminConfiguredMissedTurnPenaltyAmount };
+                                                     }
 
-                                                 /**
-                                                    * ⚖️ 2. AUTOMATED TURN ALLOCATION WITH PENALTY FOR SKIP/REJECTION LEAP
-                                                       * Enforces strict round-robin mechanics. Technicians cannot cherry-pick high-value tickets.
-                                                          */
-                                                            allocateNextAvailableTechnician(branchId: string, serviceValue: number): any {
-                                                                const queue = this.branchTurnQueues.get(branchId) || [];
-                                                                    if (queue.length === 0) {
-                                                                          throw new HttpException('No operational service providers available in active rotation queues.', HttpStatus.NOT_FOUND);
-                                                                              }
+                                                       /**
+                                                          * 🚨 2. HIDDEN TURN INTERCEPTOR WITH FINANCIAL PENALTY DEDUCTION
+                                                             * Triggers flat monetary salary deduction if staff hides or fails to press "Accept/Done" inside 10 mins window
+                                                                */
+                                                                  logMissedTurnInfraction(branchId: string, staffId: string, activeAppointmentId: string): any {
+                                                                      const currentStaffPenaltyRecord = this.staffFinancialPenalties.get(staffId) || {
+                                                                            totalPenaltyDeducted: 0,
+                                                                                  infractionsCount: 0,
+                                                                                        logs: []
+                                                                                            };
 
-                                                                                  // Filter out penalized staff who skipped small tasks
-                                                                                      let targetStaffId = null;
-                                                                                          const currentTime = Date.now();
+                                                                                                // Calculate updated penalty data matrix rules
+                                                                                                    currentStaffPenaltyRecord.infractionsCount += 1;
+                                                                                                        currentStaffPenaltyRecord.totalSalaryDeducted += this.adminConfiguredMissedTurnPenaltyAmount;
+                                                                                                            currentStaffPenaltyRecord.logs.push({
+                                                                                                                  timestamp: new Date().toISOString(),
+                                                                                                                        appointmentId,
+                                                                                                                              branchId,
+                                                                                                                                    deductedAmount: this.adminConfiguredMissedTurnPenaltyAmount,
+                                                                                                                                          reason: 'SOP Policy Infraction: Hidden Turn Timeout. Failed to execute Accept/Done within 10-minute constraint.'
+                                                                                                                                              });
 
-                                                                                              for (let i = 0; i < queue.length; i++) {
-                                                                                                    const staffId = queue[i];
-                                                                                                          const penalty = this.staffPenaltyStatus.get(staffId);
+                                                                                                                                                  this.staffFinancialPenalties.set(staffId, currentStaffPenaltyRecord);
 
-                                                                                                                if (penalty && penalty.isBlocked) {
-                                                                                                                        if (currentTime > penalty.liftTime) {
-                                                                                                                                  this.staffPenaltyStatus.delete(staffId); // Penalty expired log
-                                                                                                                                          } else {
-                                                                                                                                                    continue; // Skip this technician, they are currently penalized
-                                                                                                                                                            }
-                                                                                                                                                                  }
-                                                                                                                                                                        
-                                                                                                                                                                              targetStaffId = staffId;
-                                                                                                                                                                                    // Remove from front and push to the back of the rotation line
-                                                                                                                                                                                          queue.splice(i, 1);
-                                                                                                                                                                                                queue.push(targetStaffId);
-                                                                                                                                                                                                      this.branchTurnQueues.set(branchId, queue);
-                                                                                                                                                                                                            break;
-                                                                                                                                                                                                                }
+                                                                                                                                                      // Hard rotation update: Remove technician and push straight to the bottom of the line
+                                                                                                                                                          const queue = this.branchTurnQueues.get(branchId) || [];
+                                                                                                                                                              const index = queue.indexOf(staffId);
+                                                                                                                                                                  if (index > -1) {
+                                                                                                                                                                        queue.splice(index, 1);
+                                                                                                                                                                              queue.push(staffId);
+                                                                                                                                                                                    this.branchTurnQueues.set(branchId, queue);
+                                                                                                                                                                                        }
 
-                                                                                                                                                                                                                    if (!targetStaffId) {
-                                                                                                                                                                                                                          throw new HttpException('All available technicians are currently under penalty status blocks.', HttpStatus.FORBIDDEN);
-                                                                                                                                                                                                                              }
+                                                                                                                                                                                            this.logger.error(`[FINANCIAL PENALTY LOCKED] Technician UUID: ${staffId} penalized ₹${this.adminConfiguredMissedTurnPenaltyAmount} for skipping turn.`);
+                                                                                                                                                                                                
+                                                                                                                                                                                                    return {
+                                                                                                                                                                                                          status: 'INFRACTION_PENALIZED',
+                                                                                                                                                                                                                staffId,
+                                                                                                                                                                                                                      deductedFine: this.adminConfiguredMissedTurnPenaltyAmount,
+                                                                                                                                                                                                                            accumulatedPenaltyTotal: currentStaffPenaltyRecord.totalSalaryDeducted,
+                                                                                                                                                                                                                                  queuePosition: 'demoted_to_bottom'
+                                                                                                                                                                                                                                      };
+                                                                                                                                                                                                                                        }
 
-                                                                                                                                                                                                                                  return { status: 'allocated', staffId: targetStaffId, ruleApplied: 'Strict Round-Robin' };
-                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                          /**
+                                                                                                                                                                                                                                             * 📱 3. RESTRICTED ZONE HARDWARE PHONE TRACKER
+                                                                                                                                                                                                                                                * Triggers immediate push alerts if a technician sneaks their phone into a restricted treatment zone
+                                                                                                                                                                                                                                                   */
+                                                                                                                                                                                                                                                     logRestrictedZoneDeviceViolation(staffId: string, zoneId: string): any {
+                                                                                                                                                                                                                                                         const violationReport = {
+                                                                                                                                                                                                                                                               alertType: 'RESTRICTED_ZONE_PHONE_INFRACTION',
+                                                                                                                                                                                                                                                                     staffId,
+                                                                                                                                                                                                                                                                           zoneId,
+                                                                                                                                                                                                                                                                                 timestamp: new Date().toISOString(),
+                                                                                                                                                                                                                                                                                       actionRequired: 'IMMEDIATE_MANAGER_INTERVENTION'
+                                                                                                                                                                                                                                                                                           };
 
-                                                                                                                                                                                                                                      /**
-                                                                                                                                                                                                                                         * 🚨 3. LOG SERVICE REJECTION / HIDDEN MISSED TURN PENALTY
-                                                                                                                                                                                                                                            * Punishes staff who hide or refuse low-token services by locking them out of high-value tasks
-                                                                                                                                                                                                                                               */
-                                                                                                                                                                                                                                                 flagServiceRejection(branchId: string, staffId: string, reason: string): any {
-                                                                                                                                                                                                                                                     const blockDurationMinutes = 120; // Blocked from active high-incentive streams for 2 straight hours
-                                                                                                                                                                                                                                                         const liftTime = Date.now() + (blockDurationMinutes * 60 * 1000);
-
-                                                                                                                                                                                                                                                             this.staffPenaltyStatus.set(staffId, { isBlocked: true, reason, liftTime });
-
-                                                                                                                                                                                                                                                                 // Move penalized staff to the absolute bottom of the rotation chain
-                                                                                                                                                                                                                                                                     const queue = this.branchTurnQueues.get(branchId) || [];
-                                                                                                                                                                                                                                                                         const index = queue.indexOf(staffId);
-                                                                                                                                                                                                                                                                             if (index > -1) {
-                                                                                                                                                                                                                                                                                   queue.splice(index, 1);
-                                                                                                                                                                                                                                                                                         queue.push(staffId); // Sent to the back of the line
-                                                                                                                                                                                                                                                                                               this.branchTurnQueues.set(branchId, queue);
-                                                                                                                                                                                                                                                                                                   }
-
-                                                                                                                                                                                                                                                                                                       this.logger.error(`[ANTI-CHERRY-PICKING ALERT] Staff UUID: ${staffId} penalized for: ${reason}. Locked for 2 hours.`);
-                                                                                                                                                                                                                                                                                                           return { status: 'penalties_applied', staffId, durationMinutes: blockDurationMinutes, position: 'moved_to_bottom' };
-                                                                                                                                                                                                                                                                                                             }
-
-                                                                                                                                                                                                                                                                                                               /**
-                                                                                                                                                                                                                                                                                                                  * 📱 4. RESTRICTED ZONE HARDWARE PHONE TRACKER
-                                                                                                                                                                                                                                                                                                                     * Triggered by IOT Beacons if a technician sneaks their phone into a restricted treatment zone
-                                                                                                                                                                                                                                                                                                                        */
-                                                                                                                                                                                                                                                                                                                          logRestrictedZoneDeviceViolation(staffId: string, zoneId: string): any {
-                                                                                                                                                                                                                                                                                                                              const violationReport = {
-                                                                                                                                                                                                                                                                                                                                    alertType: 'RESTRICTED_ZONE_PHONE_INFRACTION',
-                                                                                                                                                                                                                                                                                                                                          staffId,
-                                                                                                                                                                                                                                                                                                                                                zoneId,
-                                                                                                                                                                                                                                                                                                                                                      timestamp: new Date().toISOString(),
-                                                                                                                                                                                                                                                                                                                                                            actionRequired: 'IMMEDIATE_MANAGER_INTERVENTION'
-                                                                                                                                                                                                                                                                                                                                                                };
-
-                                                                                                                                                                                                                                                                                                                                                                    this.logger.error(`[SECURITY POLICY VIOLATION] ${JSON.stringify(violationReport)}`);
-                                                                                                                                                                                                                                                                                                                                                                        return { status: 'security_violation_flagged', staffId, zoneId, dispatchAlert: true };
-                                                                                                                                                                                                                                                                                                                                                                          }
-                                                                                                                                                                                                                                                                                                                                                                          }
-                                                                                                                                                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                                               this.logger.error(`[SECURITY POLICY VIOLATION] ${JSON.stringify(violationReport)}`);
+                                                                                                                                                                                                                                                                                                   return { status: 'security_violation_flagged', staffId, zoneId, dispatchAlert: true };
+                                                                                                                                                                                                                                                                                                     }
+                                                                                                                                                                                                                                                                                                     }
+                                                                                                                                                                                                                                                                                                     
