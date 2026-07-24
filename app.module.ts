@@ -14,7 +14,8 @@ import { ServiceWorkflowEngine } from './service-workflow.service';
 import { AdvancedAutomationEngine } from './advanced-automation.service';
 import { FraudControlService } from './fraud-control.service';
 import { SopEngineService } from './sop-engine.service';
-import { AntiProxyService } from './anti-proxy.service'; // Import AntiProxy Service
+import { AntiProxyService } from './anti-proxy.service';
+import { FairTurnAutomationService } from './fair-turn-automation.service'; // Import the new service
 
 @Module({
   imports: [],
@@ -34,8 +35,9 @@ import { AntiProxyService } from './anti-proxy.service'; // Import AntiProxy Ser
                                                       AdvancedAutomationEngine,
                                                           FraudControlService,
                                                               SopEngineService,
-                                                                  AntiProxyService // Registered globally inside the container context
-                                                                    ],
-                                                                    })
-                                                                    export class AppModule {}
-                                                                    
+                                                                  AntiProxyService,
+                                                                      FairTurnAutomationService // Registered globally inside container context
+                                                                        ],
+                                                                        })
+                                                                        export class AppModule {}
+                                                                        
