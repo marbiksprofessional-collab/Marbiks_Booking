@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body } from '@nestjs/common';
 import { AppService } from './app.service';
 import { UserService } from './user.service';
 import { BookingEngine } from './booking-engine';
+import { HrFinanceService } from './hr-finance.service';
 
 @Controller()
 export class AppController {
@@ -9,6 +10,7 @@ export class AppController {
     private readonly appService: AppService,
     private readonly userService: UserService,
     private readonly bookingEngine: BookingEngine,
+    private readonly hrFinanceService: HrFinanceService,
   ) {}
 
   // 🏥 1. System Health Check Endpoint
@@ -41,5 +43,22 @@ export class AppController {
     requestedEnd: string;
   }) {
     return await this.bookingEngine.validateAndRouteBooking(bookingPayload);
+  }
+
+  // 👥 5. HR Payroll Microservices Endpoint
+  @Post('hr/payroll/calculate')
+  calculatePayroll(@Body() payrollData: {
+    baseSalary: number;
+    incentives: number;
+    leavesTaken: number;
+    workingDays: number;
+  }) {
+    return this.hrFinanceService.calculateStaffSalary(payrollData);
+  }
+
+  // 📊 6. Automated GST Invoice Calculator Endpoint
+  @Post('finance/invoice/gst-reconcile')
+  reconcileGstInvoice(@Body() body: { baseAmount: number }) {
+    return this.hrFinanceService.generateTaxInvoiceMetrics(body.baseAmount);
   }
 }
